@@ -28,7 +28,7 @@ class GuidedScriptsTest {
 
     @Test
     fun allContainsExactlySixScripts() {
-        assertEquals(6, GuidedScripts.ALL.size)
+        assertEquals(8, GuidedScripts.ALL.size)
     }
 
     @Test
@@ -92,6 +92,18 @@ class GuidedScriptsTest {
         assertEquals(28, script.steps.size)
     }
 
+    @Test
+    fun visualizationMonsoonHasTenSteps() {
+        val script = GuidedScripts.byId("visualization_monsoon")!!
+        assertEquals(10, script.steps.size)
+    }
+
+    @Test
+    fun visualizationTempleHasTenSteps() {
+        val script = GuidedScripts.byId("visualization_temple")!!
+        assertEquals(10, script.steps.size)
+    }
+
     // ── Duration spot-checks ───────────────────────────────────────────
 
     @Test
@@ -104,6 +116,18 @@ class GuidedScriptsTest {
     fun breathingCoherentTotalDurationIs60Seconds() {
         val script = GuidedScripts.byId("breathing_coherent")!!
         assertEquals(60, script.totalDurationSec())
+    }
+
+    @Test
+    fun visualizationMonsoonTotalDurationIs190Seconds() {
+        val script = GuidedScripts.byId("visualization_monsoon")!!
+        assertEquals(190, script.totalDurationSec())
+    }
+
+    @Test
+    fun visualizationTempleTotalDurationIs190Seconds() {
+        val script = GuidedScripts.byId("visualization_temple")!!
+        assertEquals(190, script.totalDurationSec())
     }
 
     // ── All texts non-blank ────────────────────────────────────────────

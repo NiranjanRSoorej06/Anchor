@@ -45,6 +45,16 @@ object CopingStatements {
         "You are more than what happened to you."
     )
 
+    /** Normalize statements explaining that trauma reactions are expected. */
+    val NORMALIZE: List<String> = listOf(
+        "Stress reactions after frightening events are normal.",
+        "It's normal to feel on guard long after a stressful event.",
+        "Feeling numb or disconnected is a common response to trauma.",
+        "Difficulty sleeping after a stressful event is expected.",
+        "It's normal for your body to stay on alert after danger.",
+        "Having trouble concentrating after trauma is very common."
+    )
+
     /** Combined list of all coping statements across all categories. */
-    val ALL: List<String> = SAFETY + TEMPORAL + CAPABILITY
+    val ALL: List<String> = SAFETY + TEMPORAL + CAPABILITY + NORMALIZE
 }

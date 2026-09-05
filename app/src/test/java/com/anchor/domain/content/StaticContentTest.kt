@@ -38,6 +38,12 @@ class StaticContentTest {
     }
 
     @Test
+    fun normalizeCountBetween5And7() {
+        val count = CopingStatements.NORMALIZE.size
+        assertTrue("NORMALIZE should have 5–7 items, has $count", count in 5..7)
+    }
+
+    @Test
     fun allStatementsAreNonBlankAndWithin140Chars() {
         CopingStatements.ALL.forEach { stmt ->
             assertTrue("Statement should be non-blank: '$stmt'", stmt.isNotBlank())
@@ -62,8 +68,9 @@ class StaticContentTest {
     fun allCategoriesAreCombinedIntoAll() {
         val expected = CopingStatements.SAFETY.size +
             CopingStatements.TEMPORAL.size +
-            CopingStatements.CAPABILITY.size
-        assertEquals("ALL should be the union of three categories", expected, CopingStatements.ALL.size)
+            CopingStatements.CAPABILITY.size +
+            CopingStatements.NORMALIZE.size
+        assertEquals("ALL should be the union of four categories", expected, CopingStatements.ALL.size)
     }
 
     // ── SleepChecklist ────────────────────────────────────────────────

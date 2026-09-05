@@ -211,6 +211,40 @@ object GuidedScripts {
         )
     )
 
+    private val ScriptVisualizationMonsoon = GuidedScript(
+        id = "visualization_monsoon",
+        title = "Monsoon garden",
+        steps = listOf(
+            ScriptStep("It's normal to notice thoughts drifting or feelings of tension. You can let them come and go.", 15),
+            ScriptStep("Picture yourself standing at the edge of an open garden. A soft monsoon rain begins to fall, cool and steady.", 20),
+            ScriptStep("See the green leaves trembling under gentle raindrops. Droplets catch the light like tiny mirrors.", 20),
+            ScriptStep("Listen to the steady patter of rain on leaves and earth. Each drop a soft, even rhythm.", 20),
+            ScriptStep("Breathe in the scent of wet soil and fresh green growth. If scent feels wrong, skip it.", 20),
+            ScriptStep("Feel the cool mist settling lightly on your skin. A gentle freshness, neither warm nor cold.", 20),
+            ScriptStep("Let the soft breeze brush your face. It carries a quiet, constant coolness.", 20),
+            ScriptStep("Stay here as long as you like. You can wander the garden or simply stand where you are.", 25),
+            ScriptStep("When you're ready, let the garden slowly fade. Bring your attention back to the room around you.", 15),
+            ScriptStep("Well done. You gave yourself a moment of calm. You can return here anytime.", 15)
+        )
+    )
+
+    private val ScriptVisualizationTemple = GuidedScript(
+        id = "visualization_temple",
+        title = "Quiet courtyard",
+        steps = listOf(
+            ScriptStep("It's normal to feel on edge even in a quiet moment. Your mind is doing its best to keep you safe.", 15),
+            ScriptStep("Imagine a quiet courtyard in the early morning. Stone walls are warm from the first light.", 20),
+            ScriptStep("See a shallow pool of water at the center, perfectly still, reflecting the pale sky.", 20),
+            ScriptStep("Listen for a bell in the distance, a single soft note that fades into silence.", 20),
+            ScriptStep("Notice the faint scent of incense drifting across the courtyard. If scent feels wrong, skip it.", 20),
+            ScriptStep("Feel the warmth of the sun on your arms. It is steady and gentle.", 20),
+            ScriptStep("Place your hand on the cool stone wall. Feel its rough texture under your palm.", 20),
+            ScriptStep("Stay here as long as you like. You can sit by the water or explore the courtyard.", 25),
+            ScriptStep("When you're ready, let the courtyard fade. Bring your attention back to where you are now.", 15),
+            ScriptStep("Well done. You gave yourself a quiet moment. You can return here whenever you need.", 15)
+        )
+    )
+
     // ── Public API ────────────────────────────────────────────────────
 
     /**
@@ -225,7 +259,9 @@ object GuidedScripts {
         ScriptBreathingBox,
         ScriptBreathingCoherent,
         ScriptBreathingExhale,
-        ScriptPmrFull
+        ScriptPmrFull,
+        ScriptVisualizationMonsoon,
+        ScriptVisualizationTemple
     )
 
     /**
