@@ -75,6 +75,10 @@ NOT built yet.
 Exercises: adapt public-domain/clinical protocols (5-4-3-2-1, breathing
 ratios, Jacobson PMR, sleep hygiene, coping statements, DBT paraphrase
 only — Guilford enforces), own wording always, never copy worksheets.
+BUILT as data: `GuidedScripts` (6 scripts: 54321, 3-step, box, coherent,
+exhale, PMR; 17 tests), `CopingStatements` (19) + `SleepChecklist`
+(10 items; 9 tests), `MapsQueries` (3 presets; 4 tests). UI readers
+NOT built.
 24 bundled safety phrases (`domain/content/SafetyPhraseBank`, 10 tests) + custom recordings (≤15s, present tense, no
 narrative clause, preview + confirm; `isAcceptable` guards text form). You-are-not-alone order: crisis
 helplines (offline) → Maps button (`geo:0,0?q=`, no permission needed,
