@@ -48,9 +48,7 @@ fun HomeScreen(
     val isWhisper = audioEngine.isWhisperModeActive()
 
     LaunchedEffect(Unit) {
-        if (isWhisper) {
-            audioEngine.speakWhisper("You are in a safe place.")
-        }
+        audioEngine.speakWhisper("You are in a safe place.")
     }
 
     Scaffold { innerPadding ->
@@ -63,7 +61,7 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = if (isWhisper) "🎧 Whisper Mode · Private Earbuds" else "🔇 Silent Haptic Mode · Zero Audio",
+                text = if (isWhisper) "🎧 Whisper Mode · Private Earbuds" else "🔊 Speaker Mode · Soothing Voice",
                 style = MaterialTheme.typography.labelSmall,
                 color = if (isWhisper) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(top = 8.dp)

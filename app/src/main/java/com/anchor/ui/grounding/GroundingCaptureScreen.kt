@@ -40,11 +40,9 @@ fun GroundingCaptureScreen(
     val isWhisper = audioEngine.isWhisperModeActive()
 
     LaunchedEffect(Unit) {
-        if (audioEngine.isWhisperModeActive()) {
-            script.sentences.forEach { sentence ->
-                audioEngine.speakWhisper(sentence, TextToSpeech.QUEUE_ADD)
-                delay(3000L)
-            }
+        script.sentences.forEach { sentence ->
+            audioEngine.speakWhisper(sentence, TextToSpeech.QUEUE_ADD)
+            delay(3000L)
         }
     }
 
@@ -58,7 +56,7 @@ fun GroundingCaptureScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = if (isWhisper) "🎧 Whisper Mode · Private Earbuds" else "🔇 Silent Haptic Mode · Zero Audio",
+                text = if (isWhisper) "🎧 Whisper Mode · Private Earbuds" else "🔊 Speaker Mode · Soothing Voice",
                 style = MaterialTheme.typography.labelSmall,
                 color = if (isWhisper) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(bottom = 16.dp)

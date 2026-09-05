@@ -108,7 +108,7 @@ fun SessionScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = if (isWhisper) "🎧 Whisper Mode · Private Earbuds" else "🔇 Silent Haptic Mode · Zero Audio",
+                text = if (isWhisper) "🎧 Whisper Mode · Private Earbuds" else "🔊 Speaker Mode · Soothing Voice",
                 style = MaterialTheme.typography.labelSmall,
                 color = if (isWhisper) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -188,9 +188,7 @@ private fun ActivityStage(
     )
 
     LaunchedEffect(Unit) {
-        if (audioEngine.isWhisperModeActive()) {
-            audioEngine.speakWhisper("You are in a safe place.")
-        }
+        audioEngine.speakWhisper("You are in a safe place.")
         while (true) {
             phaseText = "Breathe In…"
             phaseSubtext = "Inhale slowly (4s)"

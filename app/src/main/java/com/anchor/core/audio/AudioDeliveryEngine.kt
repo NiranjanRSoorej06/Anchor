@@ -153,11 +153,8 @@ class WhisperAudioEngine(
     }
 
     override fun speakWhisper(text: String, queueMode: Int) {
-        if (!isWhisperModeActive()) {
-            Log.d(TAG, "No earbuds connected — suppressing speaker audio (Silent Haptic Mode)")
-            stop()
-            return
-        }
+        val earbudConnected = isWhisperModeActive()
+        Log.i(TAG, "speakWhisper requested: '$text' (earbudsConnected=$earbudConnected, ttsReady=$isTtsReady)")
 
         if (!isTtsReady || tts == null) {
             Log.d(TAG, "TTS initializing; queuing instant speech: $text")
