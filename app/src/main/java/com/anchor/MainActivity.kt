@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.anchor.devtools.DevHapticTestScreen
+import com.anchor.devtools.RoutingLabScreen
 import com.anchor.devtools.SessionStateTestScreen
 import com.anchor.devtools.ThemeSwitcher
 import com.anchor.ui.HomeScreen
@@ -44,6 +45,7 @@ class MainActivity : ComponentActivity() {
                         // DevHapticTestScreen()/HomeScreen() and delete the devtools
                         // package once the real Anchor session screen lands.
                         SessionStateTestScreen()
+                        // RoutingLabScreen()
                         // DevHapticTestScreen()
                         // HomeScreen()
                     }
