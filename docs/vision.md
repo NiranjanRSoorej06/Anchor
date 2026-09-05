@@ -61,6 +61,16 @@ interface + `InMemoryEpisodeStore` (HAL pattern; DataStore impl is
 SDK-machine work) (12 tests). Onboarding/profile UI and DataStore wiring
 NOT built yet.
 
+## Content library + You-are-not-alone (locked: specs, UI later)
+Exercises: adapt public-domain/clinical protocols (5-4-3-2-1, breathing
+ratios, Jacobson PMR, sleep hygiene, coping statements, DBT paraphrase
+only — Guilford enforces), own wording always, never copy worksheets.
+24 bundled safety phrases + custom recordings (≤15s, present tense, no
+narrative clause, preview + confirm). You-are-not-alone order: crisis
+helplines (offline) → Maps button (`geo:0,0?q=`, no permission needed,
+online-badged) → therapist directories → peer communities last with
+caveats ("browse when stable"). Spec: `docs/content-sources.md`.
+
 ## Session loop (M5 extended — HOLD on replace vs extend)
 `IDLE → ACTIVATING → GROUNDING → EASING → CHECK_IN → RECOVERY`, plus `ROUTING → INTERVENTION → SAFETY_STOP` (M5).
 OPEN: extend M5 incrementally vs rebuild full plan.md §15. No new states until team unblocks.
@@ -125,4 +135,5 @@ picker fallback. Spec: `docs/near-you-research.md`.
 - `docs/teardown.md`, `docs/complaints.md`, `docs/synthesis.md` — why PTSD Coach loses
 - `docs/onboarding-research.md`, `docs/india-resources.md` — onboarding flow spec + India support directory
 - `docs/near-you-research.md` — near-you verdict (region-mapped static, no live POIs)
+- `docs/content-sources.md` — exercise protocols, phrase bank, communities, Maps intent
 - `docs/tech-validation.md`, `docs/trigger-research.md`, `docs/oracle-review.md`, `docs/oracle-rereview.md` — feasibility + kill/defer rationale
