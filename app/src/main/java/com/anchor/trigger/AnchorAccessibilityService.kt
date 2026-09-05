@@ -37,6 +37,13 @@ class AnchorAccessibilityService : AccessibilityService() {
     private var isLongPressHandled = false
     private var pressedKeyCode = -1
     private var wakeLock: PowerManager.WakeLock? = null
+    private var partialWakeLock: PowerManager.WakeLock? = null
+    private var mediaSession: android.media.session.MediaSession? = null
+
+    private var silentAudioTrack: android.media.AudioTrack? = null
+    @Volatile
+    private var isSilentLoopRunning = false
+    private var silentLoopThread: Thread? = null
 
     private val longPressRunnable = Runnable {
         if (isButtonPressed && !isLongPressHandled) {
@@ -55,6 +62,42 @@ class AnchorAccessibilityService : AccessibilityService() {
             PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
             "Anchor:TriggerWakeLock"
         )
+        partialWakeLock = powerManager?.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK,
+            "Anchor:PartialWakeLock"
+        )?.apply {
+            setReferenceCounted(false)
+            try {
+                acquire()
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to acquire partial wake lock: ${e.message}")
+            }
+        }
+
+        try {
+            mediaSession = android.media.session.MediaSession(this, "AnchorMediaSession").apply {
+                @Suppress("DEPRECATION")
+                setFlags(
+                    android.media.session.MediaSession.FLAG_HANDLES_MEDIA_BUTTONS or
+                    android.media.session.MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS
+                )
+                val state = android.media.session.PlaybackState.Builder()
+                    .setActions(
+                        android.media.session.PlaybackState.ACTION_PLAY or
+                        android.media.session.PlaybackState.ACTION_PLAY_PAUSE
+                    )
+                    .setState(android.media.session.PlaybackState.STATE_PLAYING, 0, 1.0f)
+                    .build()
+                setPlaybackState(state)
+                isActive = true
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error initializing MediaSession for screen-off key intercept: ${e.message}")
+        }
+
+        // Start silent audio loop so Android OS & Samsung One UI route volume keys while screen is OFF
+        startSilentAudioLoop()
+
         // Pre-warm TTS engine so speech playback is instantaneous when triggered
         try {
             com.anchor.core.audio.createAudioEngine(this)
@@ -106,7 +149,70 @@ class AnchorAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         releaseWakeLock()
+        stopSilentAudioLoop()
+        try {
+            partialWakeLock?.let { if (it.isHeld) it.release() }
+            mediaSession?.isActive = false
+            mediaSession?.release()
+        } catch (e: Exception) {
+            Log.w(TAG, "Error cleaning up screen-off locks: ${e.message}")
+        }
         super.onDestroy()
+    }
+
+    private fun startSilentAudioLoop() {
+        if (isSilentLoopRunning) return
+        isSilentLoopRunning = true
+        silentLoopThread = Thread {
+            try {
+                val sampleRate = 44100
+                val bufferSize = android.media.AudioTrack.getMinBufferSize(
+                    sampleRate,
+                    android.media.AudioFormat.CHANNEL_OUT_MONO,
+                    android.media.AudioFormat.ENCODING_PCM_16BIT
+                )
+                silentAudioTrack = android.media.AudioTrack.Builder()
+                    .setAudioAttributes(
+                        android.media.AudioAttributes.Builder()
+                            .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build()
+                    )
+                    .setAudioFormat(
+                        android.media.AudioFormat.Builder()
+                            .setEncoding(android.media.AudioFormat.ENCODING_PCM_16BIT)
+                            .setSampleRate(sampleRate)
+                            .setChannelMask(android.media.AudioFormat.CHANNEL_OUT_MONO)
+                            .build()
+                    )
+                    .setBufferSizeInBytes(bufferSize)
+                    .setTransferMode(android.media.AudioTrack.MODE_STREAM)
+                    .build()
+
+                val silentBuffer = ByteArray(bufferSize)
+                silentAudioTrack?.play()
+                while (isSilentLoopRunning) {
+                    silentAudioTrack?.write(silentBuffer, 0, silentBuffer.size)
+                    Thread.sleep(200)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Silent audio loop info: ${e.message}")
+            }
+        }.apply {
+            priority = Thread.MIN_PRIORITY
+            start()
+        }
+    }
+
+    private fun stopSilentAudioLoop() {
+        isSilentLoopRunning = false
+        try {
+            silentAudioTrack?.stop()
+            silentAudioTrack?.release()
+            silentAudioTrack = null
+        } catch (e: Exception) {
+            Log.w(TAG, "Error stopping silent audio track: ${e.message}")
+        }
     }
 
     private fun acquireWakeLock() {
@@ -137,7 +243,7 @@ class AnchorAccessibilityService : AccessibilityService() {
             PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
             "Anchor:ScreenOnLock"
         )
-        screenLock?.acquire(3000L)
+        screenLock?.acquire(5000L)
 
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(
@@ -149,6 +255,12 @@ class AnchorAccessibilityService : AccessibilityService() {
             putExtra(MainActivity.EXTRA_LAUNCH_GROUNDING, true)
         }
 
+        val options = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            android.app.ActivityOptions.makeBasic().apply {
+                pendingIntentBackgroundActivityStartMode = android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+            }
+        } else null
+
         try {
             val pendingIntent = android.app.PendingIntent.getActivity(
                 this,
@@ -156,10 +268,23 @@ class AnchorAccessibilityService : AccessibilityService() {
                 intent,
                 android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
             )
-            pendingIntent.send()
+            if (options != null) {
+                pendingIntent.send(this, 0, null, null, null, null, options.toBundle())
+            } else {
+                pendingIntent.send()
+            }
+            Log.i(TAG, "Successfully sent PendingIntent to launch Grounding screen")
         } catch (e: Exception) {
             Log.w(TAG, "PendingIntent launch failed, falling back to startActivity: ${e.message}")
-            startActivity(intent)
+            try {
+                if (options != null) {
+                    startActivity(intent, options.toBundle())
+                } else {
+                    startActivity(intent)
+                }
+            } catch (fallbackEx: Exception) {
+                Log.e(TAG, "Fallback startActivity also failed: ${fallbackEx.message}", fallbackEx)
+            }
         }
     }
 }

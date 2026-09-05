@@ -147,8 +147,12 @@ class WhisperAudioEngine(
     }
 
     override fun speakWhisper(text: String, queueMode: Int) {
-        val earbudConnected = isWhisperModeActive()
-        Log.i(TAG, "speakWhisper requested: '$text' (earbudsConnected=$earbudConnected, ttsReady=$isTtsReady)")
+        if (!isWhisperModeActive()) {
+            Log.i(TAG, "Muting speech output completely - no earphones/headphones connected")
+            return
+        }
+
+        Log.i(TAG, "speakWhisper requested: '$text' (earbudsConnected=true, ttsReady=$isTtsReady)")
 
         if (tts == null) {
             Log.d(TAG, "TTS instance was null; re-initializing engine for: $text")

@@ -46,10 +46,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true)
-            setTurnScreenOn(true)
-        }
+        configureLockscreenDisplay()
         applyLaunchIntent(intent)
         // Pre-warm AudioEngineProvider for zero-latency instant TTS output
         com.anchor.core.audio.AudioEngineProvider.get(this)
@@ -117,12 +114,32 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        configureLockscreenDisplay()
         applyLaunchIntent(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        configureLockscreenDisplay()
+    }
+
+    private fun configureLockscreenDisplay() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        }
+        @Suppress("DEPRECATION")
+        window.addFlags(
+            android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+            android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
+            android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        )
     }
 
     private fun applyLaunchIntent(intent: Intent?) {
         if (intent?.getBooleanExtra(EXTRA_LAUNCH_GROUNDING, false) == true) {
             launchScreen.value = Screen.GROUNDING
+            intent.removeExtra(EXTRA_LAUNCH_GROUNDING)
         }
     }
 }
