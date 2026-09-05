@@ -6,19 +6,20 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.util.Log
 
-enum class CalmingPreset(val displayName: String) {
-    OCEAN_WAVES("Soothing Ocean Waves"),
-    GENTLE_RAIN("Gentle Ambient Rain"),
-    WHITE_NOISE("Calming Soft Noise"),
-    CUSTOM_MP3("Custom Loved-One Voice / MP3"),
-    QUIET("Quiet Mode (No Background Audio)")
+enum class CalmingPreset(val displayName: String, val description: String) {
+    OCEAN_WAVES("Soothing Ocean Waves", "Continuous rhythm of ocean tides to synchronize deep breathing."),
+    GENTLE_RAIN("Gentle Ambient Rain", "Soft steady rainfall sounds to calm mental agitation."),
+    WHITE_NOISE("Calming Soft Noise", "Consistent frequency sound mask to reduce external trigger sensitivity."),
+    CUSTOM_MP3("Loved One's Voice / Custom MP3", "Play a custom recorded voice message or loved one's audio file."),
+    QUIET("Quiet Mode (No Background Audio)", "100% silent background mode; voice guidance & haptics only.")
 }
 
 interface CalmingAudioEngine {
     val currentPreset: CalmingPreset
+    val customMp3Uri: Uri?
     fun startCalmingAudio(preset: CalmingPreset = CalmingPreset.OCEAN_WAVES)
     fun stopCalmingAudio()
-    fun setCustomMp3Uri(uri: Uri?)
+    fun updateCustomMp3Uri(uri: Uri?)
     fun isPlaying(): Boolean
 }
 
@@ -29,7 +30,7 @@ class SystemCalmingAudioEngine(private val context: Context) : CalmingAudioEngin
     }
 
     private var mediaPlayer: MediaPlayer? = null
-    private var customUri: Uri? = null
+    override var customMp3Uri: Uri? = null
     override var currentPreset: CalmingPreset = CalmingPreset.OCEAN_WAVES
 
     override fun startCalmingAudio(preset: CalmingPreset) {
@@ -42,8 +43,7 @@ class SystemCalmingAudioEngine(private val context: Context) : CalmingAudioEngin
         try {
             stopCalmingAudio()
 
-            // Initialize MediaPlayer with looping enabled
-            mediaPlayer = MediaPlayer().apply {
+            val mp = MediaPlayer().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -53,17 +53,17 @@ class SystemCalmingAudioEngine(private val context: Context) : CalmingAudioEngin
                 isLooping = true
             }
 
-            if (preset == CalmingPreset.CUSTOM_MP3 && customUri != null) {
-                mediaPlayer?.setDataSource(context, customUri!!)
-                mediaPlayer?.prepareAsync()
-                mediaPlayer?.setOnPreparedListener { mp ->
-                    mp.start()
-                    Log.i(TAG, "Custom MP3 calming audio playback started")
+            if (preset == CalmingPreset.CUSTOM_MP3 && customMp3Uri != null) {
+                mp.setDataSource(context, customMp3Uri!!)
+                mp.prepareAsync()
+                mp.setOnPreparedListener { player ->
+                    player.start()
+                    Log.i(TAG, "Custom MP3 calming audio playback started: $customMp3Uri")
                 }
             } else {
-                // Preset synthesized gentle ambient sound simulation or system asset
-                Log.i(TAG, "Calming audio active for preset: ${preset.displayName}")
+                Log.i(TAG, "Calming background audio initialized for preset: ${preset.displayName}")
             }
+            mediaPlayer = mp
         } catch (e: Exception) {
             Log.w(TAG, "Error starting calming audio: ${e.message}")
         }
@@ -83,8 +83,8 @@ class SystemCalmingAudioEngine(private val context: Context) : CalmingAudioEngin
         }
     }
 
-    override fun setCustomMp3Uri(uri: Uri?) {
-        this.customUri = uri
+    override fun updateCustomMp3Uri(uri: Uri?) {
+        this.customMp3Uri = uri
         Log.i(TAG, "Custom MP3 URI updated: $uri")
     }
 
@@ -99,6 +99,7 @@ class SystemCalmingAudioEngine(private val context: Context) : CalmingAudioEngin
 
 class DebugCalmingAudioEngine : CalmingAudioEngine {
     private var playing = false
+    override var customMp3Uri: Uri? = null
     override var currentPreset: CalmingPreset = CalmingPreset.OCEAN_WAVES
 
     override fun startCalmingAudio(preset: CalmingPreset) {
@@ -110,7 +111,9 @@ class DebugCalmingAudioEngine : CalmingAudioEngine {
         playing = false
     }
 
-    override fun setCustomMp3Uri(uri: Uri?) {}
+    override fun updateCustomMp3Uri(uri: Uri?) {
+        this.customMp3Uri = uri
+    }
 
     override fun isPlaying(): Boolean = playing
 }

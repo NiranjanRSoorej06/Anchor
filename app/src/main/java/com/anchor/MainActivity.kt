@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
                             )
                             Screen.EDIT_ANCHOR -> EditAnchorScreen(
                                 onBack = { launchScreen.value = Screen.HOME },
-                                onSave = { tool, audio ->
+                                onSave = { tool, audio, uri ->
                                     // Settings saved
                                 }
                             )
