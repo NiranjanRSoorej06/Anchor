@@ -63,6 +63,7 @@ fun HomeScreen(
     hapticEngine: HapticEngine,
     audioEngine: AudioDeliveryEngine = DebugAudioEngine(),
     onEnterSession: () -> Unit,
+    onManageSymptoms: () -> Unit,
     onFindSupport: () -> Unit,
     onTools: () -> Unit,
     onCompanionMode: () -> Unit = {}
@@ -103,12 +104,11 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // Card 1 — Manage (→ SESSION)
+                // Card 1 — Manage (→ ManageSymptomsScreen)
                 Card(
                     onClick = {
                         hapticEngine.play(HapticPatterns.DOUBLE_PULSE)
-                        machine.start()
-                        onEnterSession()
+                        onManageSymptoms()
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium,
@@ -417,6 +417,7 @@ private fun HomeScreenPreview() {
             hapticEngine = DebugHapticEngine(),
             audioEngine = DebugAudioEngine(),
             onEnterSession = {},
+            onManageSymptoms = {},
             onFindSupport = {},
             onTools = {}
         )

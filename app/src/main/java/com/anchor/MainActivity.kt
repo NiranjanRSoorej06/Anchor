@@ -29,12 +29,13 @@ import com.anchor.devtools.ThemeSwitcher
 import com.anchor.devtools.ToolsLibraryScreen
 import com.anchor.domain.session.SessionStateMachine
 import com.anchor.ui.HomeScreen
+import com.anchor.ui.symptoms.ManageSymptomsScreen
 import com.anchor.ui.grounding.GroundingCaptureScreen
 import com.anchor.ui.session.SessionScreen
 import com.anchor.ui.theme.AnchorTheme
 import com.anchor.ui.theme.ThemeVariant
 
-private enum class Screen { HOME, SESSION, GROUNDING, SUPPORT, TOOLS, COMPANION }
+private enum class Screen { HOME, SESSION, GROUNDING, SUPPORT, TOOLS, COMPANION, MANAGE_SYMPTOMS }
 
 class MainActivity : ComponentActivity() {
 
@@ -83,6 +84,7 @@ class MainActivity : ComponentActivity() {
                                 hapticEngine = hapticEngine,
                                 audioEngine = audioEngine,
                                 onEnterSession = { launchScreen.value = Screen.SESSION },
+                                onManageSymptoms = { launchScreen.value = Screen.MANAGE_SYMPTOMS },
                                 onFindSupport = { launchScreen.value = Screen.SUPPORT },
                                 onTools = { launchScreen.value = Screen.TOOLS },
                                 onCompanionMode = { launchScreen.value = Screen.COMPANION }
@@ -93,6 +95,14 @@ class MainActivity : ComponentActivity() {
                                 audioEngine = audioEngine,
                                 calmingPlayer = calmingPlayer,
                                 onExitToHome = { launchScreen.value = Screen.HOME }
+                            )
+                            Screen.MANAGE_SYMPTOMS -> ManageSymptomsScreen(
+                                onNavigateToSession = {
+                                    machine.start()
+                                    launchScreen.value = Screen.SESSION
+                                },
+                                onNavigateToSupport = { launchScreen.value = Screen.SUPPORT },
+                                onBack = { launchScreen.value = Screen.HOME }
                             )
                             Screen.GROUNDING -> GroundingCaptureScreen(
                                 audioEngine = audioEngine,

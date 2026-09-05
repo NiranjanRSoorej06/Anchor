@@ -471,17 +471,17 @@ fun SessionScreen(
                 ConfirmAlertDialog(
                     onConfirm = {
                         showConfirmAlert = false
-                        alertSent = true
                         val phones = companionPrefs.getContacts().map { it.phoneNumber }
-                        companionEngine.sendAfterUserConfirm(
+                        val sent = companionEngine.sendAfterUserConfirm(
                             contactPhones = phones,
                             message = "Anchor: Your contact could use some quiet support right now."
                         )
+                        alertSent = sent
                         logStore.saveLog(
                             SprintExperienceLog(
                                 comfortableToTalk = true,
-                                finalState = "Still Distressed — Alert Sent",
-                                alertSentToTrustedContacts = true
+                                finalState = if (sent) "Still Distressed — Alert Sent" else "Still Distressed — Alert Failed",
+                                alertSentToTrustedContacts = sent
                             )
                         )
                         isCriticalMode = true
