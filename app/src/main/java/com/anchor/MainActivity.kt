@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.anchor.core.haptics.createHapticEngine
 import com.anchor.devtools.DevHapticTestScreen
+import com.anchor.devtools.RoutingLabScreen
 import com.anchor.devtools.SessionStateTestScreen
 import com.anchor.devtools.ThemeSwitcher
 import com.anchor.domain.session.SessionStateMachine
@@ -68,6 +69,7 @@ class MainActivity : ComponentActivity() {
                         // Dev tooling — still reachable by swapping the line above
                         // for manual verification. Not part of the real app flow.
                         // SessionStateTestScreen()
+                        // RoutingLabScreen()
                         // DevHapticTestScreen()
                     }
                 }
