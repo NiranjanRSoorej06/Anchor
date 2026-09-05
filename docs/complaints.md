@@ -52,3 +52,58 @@
 - [ ] Does it avoid quiz/crisis-line spam while staying safe?
 - [ ] Does it bridge to human (doctor/coach/trusted contact) when wanted?
 - [ ] Is it stable, fast, Android-friendly?
+
+## Literature backing (peer-reviewed, 2026-09-06 research pass)
+
+Maps verbatim Play complaints above to published evidence. Full per-paper
+brief held in session; key citations here.
+
+- **Harms are measured, not anecdotal (→ H):** Hensler 2022 RCT (n=71,
+  doi:10.2196/31419): 51% reported ≥1 negative reaction — unfulfilled
+  expectations 20%, unmotivating 18%, confusing 11%, increased stress 10%,
+  distressing memories 8%, anxiety 7%, symptom deterioration 7%. No increased
+  suicidality. Follow-up Hensler 2023 (doi:10.1016/j.invent.2023.100618): 43%
+  any negative effect at 9 months. Cernvall 2018 pilot: users questioned
+  whether unsupervised use could be harmful.
+- **Freezing mid-crisis (→ E):** Strodl 2020 clinicians (n=63,
+  doi:10.1016/j.invent.2020.100333): *"the app actually froze, and if I was
+  someone in the process of being triggered, I probably would have smashed
+  the phone"*; *"once I added three photos and the whole app crashed."*
+  Low frustration tolerance warning: users *"could well pelt a phone across
+  the room, just trying to find things."*
+- **Militarized tone (→ B):** Shakespeare-Finch 2020 ADF study (n=53,
+  doi:10.2196/18447): *"very militarized"* tone; *"as soon as you get out you
+  will not be told what to do"* (authoritarian); icon stigma in public;
+  *"I don't know where it went. Just disappeared"* (histories lost on
+  Android). Strodl 2020: *"when you are serving you follow orders, however
+  when you are not, you baulk at orders."*
+- **History loss confirmed (→ E):** workshop-observed assessment histories
+  vanishing on Android (Shakespeare-Finch 2020); matches verbatim review #5.
+- **Human > app (→ F):** Bröcker 2024 SA qualitative (n=25,
+  doi:10.1080/20008066.2024.2298612): *"the app did not help (instead) the
+  people encouraged me to talk"*; *"exhausting with the exercises"*; wanted
+  more counselling. Possemato 2023 RCT (N=234,
+  doi:10.1007/s11606-023-08130-6): clinician-supported arm superior on
+  self-reported PTSD (d=0.28) + 74% more sessions + higher satisfaction.
+- **iOS/Android split (→ E):** Owen 2015 (doi:10.2196/mental.3935, 156
+  reviews): iOS 89% positive / 4.6★ vs Android 42.7% / 3.1★; Android 46.6%
+  reported tech problems vs iOS 7.5%. One user's difficulties caused
+  increased distress.
+- **Retention cliff (→ D):** Hallenbeck 2022 v3.1 (doi:10.2196/34744,
+  ~150k users): mean 3 visits / 3 days / 18 min total; 87% day 1 → 0.69%
+  at 12 months; only 2.02% high-engagement. Post-tool distress drop only
+  −1.38/10 (smaller than v1's ~2).
+- **Satisfaction ceiling (→ C/D):** Reyes 2025 (n=164,
+  doi:10.1037/pro0000633): helpful 90.2%, easy 69.5%, recommend 90.9% —
+  yet usage still collapses; liking ≠ returning. Rodriguez-Paras 2017:
+  SUS 66.25 (below "good" 68); color scheme + personalization deficits.
+- **Newest signal (2025–26):** Senti 2025 UX interviews drove v4.0 redesign
+  (doi:10.5281/zenodo.15851443); Pacella-LaBarbara 2026 ED-injury
+  qualitative (PMCID:PMC12958468): users want voice-overs, onboarding
+  personalization, text reminders, in-person linkages; 1/3 barely used it.
+  Possemato 2026 VHA implementation: 348 patients, d=−0.37, 90% clinician
+  adoption — supported model scales in-system.
+- **Privacy split (→ A):** Strodl 2020: distrust of gov data-sharing vs
+  Mozilla 2022: no identifiable data leaves device. Lesson: architecture
+  isn't enough — the *perception* needs designing (our offline story must
+  be visible, not just true).
