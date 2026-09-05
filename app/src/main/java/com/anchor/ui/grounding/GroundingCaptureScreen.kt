@@ -71,7 +71,7 @@ fun GroundingCaptureScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = if (isWhisper) "🎧 Whisper Mode · Private Earbuds" else "🔊 Speaker Mode · Soothing Voice",
+                text = if (isWhisper) "Whisper Mode · Private Earbuds" else "Speaker Mode · Soothing Voice",
                 style = MaterialTheme.typography.labelSmall,
                 color = if (isWhisper) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(bottom = 16.dp)

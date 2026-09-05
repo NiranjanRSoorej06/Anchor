@@ -14,7 +14,7 @@ class CompanionNotificationEngine(private val context: Context) {
         const val TAG = "CompanionEngine"
     }
 
-    fun notifyCompanion(): Boolean {
+    fun notifyCompanion(customMessage: String? = null): Boolean {
         val prefs = CompanionPreferences(context)
         if (!prefs.isEnabled) {
             Log.d(TAG, "Companion Mode is disabled; skipping notification")
@@ -34,7 +34,7 @@ class CompanionNotificationEngine(private val context: Context) {
             return false
         }
 
-        val message = prefs.getMessageText()
+        val message = customMessage ?: prefs.getMessageText()
         var successCount = 0
 
         val smsManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
