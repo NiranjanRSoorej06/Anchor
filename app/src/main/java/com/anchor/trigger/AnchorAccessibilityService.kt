@@ -28,28 +28,33 @@ class AnchorAccessibilityService : AccessibilityService() {
 
     private companion object {
         const val TAG = "AnchorA11yService"
-        const val LONG_PRESS_TIMEOUT_MS = 800L
+        const val LONG_PRESS_TIMEOUT_MS = 600L
         const val WAKE_LOCK_TIMEOUT_MS = 3000L
     }
 
     private val handler = Handler(Looper.getMainLooper())
     private var isButtonPressed = false
+    private var isLongPressHandled = false
     private var pressedKeyCode = -1
     private var wakeLock: PowerManager.WakeLock? = null
 
     private val longPressRunnable = Runnable {
-        if (isButtonPressed) {
+        if (isButtonPressed && !isLongPressHandled) {
+            isLongPressHandled = true
             Log.i(TAG, "Grounding long-press detected")
             triggerGrounding()
             releaseWakeLock()
-            isButtonPressed = false
         }
     }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
-        wakeLock = powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Anchor:TriggerWakeLock")
+        @Suppress("DEPRECATION")
+        wakeLock = powerManager?.newWakeLock(
+            PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
+            "Anchor:TriggerWakeLock"
+        )
         Log.i(TAG, "Anchor accessibility service connected")
     }
 
@@ -58,18 +63,25 @@ class AnchorAccessibilityService : AccessibilityService() {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             when (event.action) {
                 KeyEvent.ACTION_DOWN -> {
-                    if (!isButtonPressed) {
+                    if (event.repeatCount == 0) {
                         acquireWakeLock()
                         isButtonPressed = true
+                        isLongPressHandled = false
                         pressedKeyCode = keyCode
+                        handler.removeCallbacks(longPressRunnable)
                         handler.postDelayed(longPressRunnable, LONG_PRESS_TIMEOUT_MS)
                     }
                 }
                 KeyEvent.ACTION_UP -> {
-                    if (isButtonPressed && keyCode == pressedKeyCode) {
+                    if (keyCode == pressedKeyCode) {
                         handler.removeCallbacks(longPressRunnable)
                         releaseWakeLock()
                         isButtonPressed = false
+                        val handled = isLongPressHandled
+                        isLongPressHandled = false
+                        if (handled) {
+                            return true
+                        }
                     }
                 }
             }
@@ -110,6 +122,14 @@ class AnchorAccessibilityService : AccessibilityService() {
             Log.w(TAG, "Failed to play trigger haptic: ${e.message}")
         }
 
+        val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
+        @Suppress("DEPRECATION")
+        val screenLock = powerManager?.newWakeLock(
+            PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
+            "Anchor:ScreenOnLock"
+        )
+        screenLock?.acquire(3000L)
+
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK or
@@ -119,6 +139,18 @@ class AnchorAccessibilityService : AccessibilityService() {
             )
             putExtra(MainActivity.EXTRA_LAUNCH_GROUNDING, true)
         }
-        startActivity(intent)
+
+        try {
+            val pendingIntent = android.app.PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+            )
+            pendingIntent.send()
+        } catch (e: Exception) {
+            Log.w(TAG, "PendingIntent launch failed, falling back to startActivity: ${e.message}")
+            startActivity(intent)
+        }
     }
 }

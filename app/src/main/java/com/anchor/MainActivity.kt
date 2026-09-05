@@ -48,10 +48,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        }
         applyLaunchIntent(intent)
         setContent {
             var themeVariant by remember { mutableStateOf(ThemeVariant.NORD) }
-            var screen by launchScreen
+            val screen by launchScreen
 
             val context = LocalContext.current
             val machine = remember { SessionStateMachine() }
@@ -73,15 +77,15 @@ class MainActivity : ComponentActivity() {
                             Screen.HOME -> HomeScreen(
                                 machine = machine,
                                 hapticEngine = hapticEngine,
-                                onEnterSession = { screen = Screen.SESSION }
+                                onEnterSession = { launchScreen.value = Screen.SESSION }
                             )
                             Screen.SESSION -> SessionScreen(
                                 machine = machine,
                                 hapticEngine = hapticEngine,
-                                onExitToHome = { screen = Screen.HOME }
+                                onExitToHome = { launchScreen.value = Screen.HOME }
                             )
                             Screen.GROUNDING -> GroundingCaptureScreen(
-                                onDone = { screen = Screen.HOME }
+                                onDone = { launchScreen.value = Screen.HOME }
                             )
                         }
 
@@ -99,6 +103,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         applyLaunchIntent(intent)
     }
 
