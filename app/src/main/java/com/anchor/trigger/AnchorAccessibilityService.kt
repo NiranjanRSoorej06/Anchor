@@ -28,7 +28,7 @@ class AnchorAccessibilityService : AccessibilityService() {
 
     private companion object {
         const val TAG = "AnchorA11yService"
-        const val LONG_PRESS_TIMEOUT_MS = 600L
+        const val LONG_PRESS_TIMEOUT_MS = 380L
         const val WAKE_LOCK_TIMEOUT_MS = 3000L
     }
 

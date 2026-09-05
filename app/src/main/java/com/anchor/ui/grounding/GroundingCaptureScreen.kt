@@ -41,7 +41,6 @@ fun GroundingCaptureScreen(
 
     LaunchedEffect(Unit) {
         if (audioEngine.isWhisperModeActive()) {
-            delay(1500L)
             script.sentences.forEach { sentence ->
                 audioEngine.speakWhisper(sentence, TextToSpeech.QUEUE_ADD)
                 delay(3000L)

@@ -78,15 +78,16 @@ class WhisperAudioEngine(
                     tts?.setAudioAttributes(audioAttributes)
                 }
 
-                // Calibrate TTS for soft, soothing female whisper tone (1.18f pitch for natural soft female voice)
-                tts?.setPitch(1.18f)
-                tts?.setSpeechRate(0.85f)
+                selectSoftFemaleVoice()
+                // Calibrate TTS for warm, natural, soothing female tone (0.98f pitch for natural resonance, 0.80f speech rate for calm breathing pace)
+                tts?.setPitch(0.98f)
+                tts?.setSpeechRate(0.80f)
                 isTtsReady = true
-                Log.i(TAG, "Whisper TTS ready! Flushing pending speech if any")
+                Log.i(TAG, "Whisper TTS ready! Soothing female voice active")
 
                 // Immediately speak any phrase requested while TTS was starting
                 val textToSpeak = pendingSpeechText
-                if (textToSpeak != null && isWhisperModeActive()) {
+                if (textToSpeak != null) {
                     speakInternal(textToSpeak, pendingQueueMode)
                     pendingSpeechText = null
                 }
@@ -98,16 +99,61 @@ class WhisperAudioEngine(
         }
     }
 
+    private fun selectSoftFemaleVoice() {
+        val ttsEngine = tts ?: return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                val voices = ttsEngine.voices
+                if (!voices.isNullOrEmpty()) {
+                    val femaleVoice = voices
+                        .filter { voice ->
+                            val lang = voice.locale.language
+                            lang == Locale.ENGLISH.language || lang == "en"
+                        }
+                        .sortedWith(
+                            compareByDescending<android.speech.tts.Voice> { voice ->
+                                var score = 0
+                                val name = voice.name.lowercase()
+                                if (name.contains("female") || name.contains("fem") ||
+                                    name.contains("sfg") || name.contains("tpf") ||
+                                    name.contains("iom") || name.contains("iol") ||
+                                    name.contains("rfn") || name.contains("wmn") ||
+                                    name.contains("woman") || name.contains("en-us-x-sfg") ||
+                                    name.contains("en-us-x-tpf") || name.contains("en-us-x-iob")) {
+                                    score += 100
+                                }
+                                if (voice.quality == android.speech.tts.Voice.QUALITY_VERY_HIGH) score += 50
+                                else if (voice.quality == android.speech.tts.Voice.QUALITY_HIGH) score += 30
+                                else if (voice.quality == android.speech.tts.Voice.QUALITY_NORMAL) score += 10
+
+                                if (voice.latency == android.speech.tts.Voice.LATENCY_VERY_LOW) score += 20
+                                else if (voice.latency == android.speech.tts.Voice.LATENCY_LOW) score += 10
+
+                                if (!voice.isNetworkConnectionRequired) score += 5
+                                score
+                            }
+                        )
+                        .firstOrNull() ?: voices.find { voice ->
+                        voice.locale.language == Locale.ENGLISH.language && !voice.isNetworkConnectionRequired
+                    }
+
+                    if (femaleVoice != null) {
+                        ttsEngine.voice = femaleVoice
+                        Log.i(TAG, "Selected soothing female voice: ${femaleVoice.name} (quality=${femaleVoice.quality})")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error selecting soft female voice: ${e.message}")
+        }
+    }
+
     override fun isWhisperModeActive(): Boolean {
         return detector.isPrivateHeadsetConnected()
     }
 
     override fun speakWhisper(text: String, queueMode: Int) {
-        val active = isWhisperModeActive()
-        Log.i(TAG, "speakWhisper requested: '$text' (whisperActive=$active, ttsReady=$isTtsReady)")
-
-        // Essential Safety & Privacy rule: Mute 100% if no private earbuds are attached!
-        if (!active) {
+        if (!isWhisperModeActive()) {
             Log.d(TAG, "No earbuds connected — suppressing speaker audio (Silent Haptic Mode)")
             stop()
             return

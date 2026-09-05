@@ -50,6 +50,8 @@ class MainActivity : ComponentActivity() {
             setTurnScreenOn(true)
         }
         applyLaunchIntent(intent)
+        // Pre-warm AudioEngineProvider for zero-latency instant TTS output
+        com.anchor.core.audio.AudioEngineProvider.get(this)
         setContent {
             var themeVariant by remember { mutableStateOf(ThemeVariant.NORD) }
             val screen by launchScreen
