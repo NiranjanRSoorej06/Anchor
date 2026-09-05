@@ -56,6 +56,11 @@ excludes inward-focus exercises when dissociated; hard safety filter over
 every suggestion; Stanley-Brown safety plan form; safety-stop screen that
 does nothing automatic, ever.
 
+**Reflection + follow-up (planned):** gentle post-session notification
+leading to an optional 3-tap check-in (trigger + distress rating + short
+note for the therapist); private episode journal with therapist export;
+voluntary trigger-photo log (blurred thumbnails, never auto-reviewed).
+
 **Look + system:** three calm color palettes (Nord default, Soft Sage,
 Warm Sand) with light and dark modes; personalization (theme, routines,
 phrases); progress graphs; Learn education module; multilingual UI;
