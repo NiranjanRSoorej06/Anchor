@@ -14,21 +14,20 @@ with the 5-scale doubled; if /5, our story still maxes it.
 | Prototype / Technical Execution | 10 | 6 | 8–10 | SDK APK + screenshots + 90-sec demo video. Biggest swing on the board |
 | Scalability & Feasibility | 10 | 8 | 8–10 | Backendless = ₹0 marginal cost; clarify the /10-vs-/5 ambiguity |
 | UX & Design | 5 | 4 | 5 | M3 + 3 themes + civilian-first + warnings exist; needs on-device screenshots + contrast/accessibility note |
-| Market Opportunity | 5 | 3 | 4 | Model is honest pre-revenue hypotheses; +1 with any partnership outreach proof (even an email thread with Tele MANAS/NIMHANS/Vandrevala/iCall) |
-| **Total** | **40** | **~30** | **~37–39** | |
+| Market Opportunity | 5 | 3 | 3–4 | Honest pre-revenue hypotheses + cost realism; no outreach theater |
+| **Total** | **40** | **~30** | **~36–38** | |
 
 ## Highest-ROI actions (ranked)
 
-1. **SDK build + screenshots + demo video** (≈ +5–6 pts across Prototype/UX).
+1. **SDK build + screenshots** (≈ +4–5 pts across Prototype/UX).
    `git checkout unified && ./gradlew assembleDebug`, run VERIFY checklists,
-   screencap each step of docs/demo-plan.md 90-sec script.
+   screencap each step of docs/demo-plan.md 90-sec script. Q3 mandates a live
+   demo or screenshots — this is the single non-negotiable artifact.
 2. **One differentiation slide** (+1 Innovation): side-by-side "PTSD Coach
    (passive library) vs Anchor (active SOS)" + the three literature-cited
    gaps we close (Bröcker SMD −0.19; 87%→0.69% retention; 22.8% LMIC seeking).
-3. **One partnership email thread** (+1 Market): write to Tele MANAS/NIMHANS/
-   Vandrevala/iCall about directory listing + pilot; the thread itself is
-   the artifact, even pre-reply.
-4. ~~Arduino UNO Q (+2 bonus)~~ — CUT, no hardware available.
+3. ~~Partnership email thread~~ — CUT per team. Market stays carried by cost
+   realism + institutional path narrative (score ceiling 3–4).
 
 ## Arduino UNO Q verdict: CUT (team decision — no hardware available)
 
