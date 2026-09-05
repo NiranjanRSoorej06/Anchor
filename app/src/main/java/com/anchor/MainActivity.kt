@@ -3,6 +3,7 @@ package com.anchor
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -32,7 +33,7 @@ import com.anchor.ui.session.SessionScreen
 import com.anchor.ui.theme.AnchorTheme
 import com.anchor.ui.theme.ThemeVariant
 
-private enum class Screen { HOME, SESSION, GROUNDING }
+private enum class Screen { HOME, SESSION, GROUNDING, SUPPORT, TOOLS }
 
 class MainActivity : ComponentActivity() {
 
@@ -56,6 +57,12 @@ class MainActivity : ComponentActivity() {
             var themeVariant by remember { mutableStateOf(ThemeVariant.NORD) }
             val screen by launchScreen
 
+            // System back from any non-HOME destination returns HOME;
+            // HOME itself keeps the default behavior (exits the app).
+            BackHandler(enabled = screen != Screen.HOME) {
+                launchScreen.value = Screen.HOME
+            }
+
             val context = LocalContext.current
             val machine = remember { SessionStateMachine() }
             val hapticEngine = remember { com.anchor.core.haptics.createHapticEngine(context) }
@@ -76,7 +83,9 @@ class MainActivity : ComponentActivity() {
                                 machine = machine,
                                 hapticEngine = hapticEngine,
                                 audioEngine = audioEngine,
-                                onEnterSession = { launchScreen.value = Screen.SESSION }
+                                onEnterSession = { launchScreen.value = Screen.SESSION },
+                                onFindSupport = { launchScreen.value = Screen.SUPPORT },
+                                onTools = { launchScreen.value = Screen.TOOLS }
                             )
                             Screen.SESSION -> SessionScreen(
                                 machine = machine,
@@ -88,6 +97,8 @@ class MainActivity : ComponentActivity() {
                                 audioEngine = audioEngine,
                                 onDone = { launchScreen.value = Screen.HOME }
                             )
+                            Screen.SUPPORT -> FindSupportScreen()
+                            Screen.TOOLS -> ToolsLibraryScreen()
                         }
 
                         // Dev tooling — still reachable by swapping the line above

@@ -5,13 +5,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -37,13 +40,19 @@ import com.anchor.ui.theme.AnchorTheme
  * Supports Dual-Mode Audio & Haptic Delivery:
  * - When private earphones/earbuds are connected: whispers "You are in a safe place." in a soft female voice.
  * - When no earphones are connected: mutes 100% of audio output for silent haptic mode.
+ *
+ * @param onEnterSession navigate to the session flow on ANCHOR NOW tap.
+ * @param onFindSupport navigate to the Find Support screen.
+ * @param onTools navigate to the Tools library screen.
  */
 @Composable
 fun HomeScreen(
     machine: SessionStateMachine,
     hapticEngine: HapticEngine,
     audioEngine: AudioDeliveryEngine = DebugAudioEngine(),
-    onEnterSession: () -> Unit
+    onEnterSession: () -> Unit,
+    onFindSupport: () -> Unit,
+    onTools: () -> Unit
 ) {
     val isWhisper = audioEngine.isWhisperModeActive()
 
@@ -76,6 +85,14 @@ fun HomeScreen(
                     machine.start()
                     onEnterSession()
                 }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+            ) {
+                TextButton(onClick = onFindSupport) { Text("Find Support") }
+                TextButton(onClick = onTools) { Text("Tools") }
             }
 
             Text(
@@ -116,7 +133,9 @@ private fun HomeScreenPreview() {
             machine = SessionStateMachine(),
             hapticEngine = DebugHapticEngine(),
             audioEngine = DebugAudioEngine(),
-            onEnterSession = {}
+            onEnterSession = {},
+            onFindSupport = {},
+            onTools = {}
         )
     }
 }

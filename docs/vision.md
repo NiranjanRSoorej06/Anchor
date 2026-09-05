@@ -180,6 +180,8 @@ Pincode beats GPS: user types 6-digit PIN → first-2-digit state table
 - `docs/ptsd-care-india-map.md` — PIN routing table + 20 institutions + card taxonomy
 - `docs/content-sources.md` — exercise protocols, phrase bank, communities, Maps intent
 - `docs/ptsdcoach-online-brief.md` — 17 tools, transcripts, TTS options, top-5 takeaways
+- `docs/voice-options.md` — natural voices verdict (Sarvam-render+bundle wins)
+- `docs/wiring-plan.md` — file-by-file integration spec for SDK (7 jobs + must-not-touch)
 - `docs/demo-plan.md` — THE demo: locked feature list, fake cards, 90-sec script (share with SDK machine)
 - `docs/ptsd-coach-evidence.md` — trials, attrition, flaws (nice ≠ retained; our wedge)
 - `docs/app-literature-suggestions.md` — authors' own recommendations per paper + top-10 synthesis + our gaps
