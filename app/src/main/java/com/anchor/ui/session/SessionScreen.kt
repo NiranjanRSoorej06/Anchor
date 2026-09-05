@@ -34,42 +34,38 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.anchor.core.audio.AudioDeliveryEngine
+import com.anchor.core.audio.DebugAudioEngine
 import com.anchor.core.haptics.HapticEngine
 import com.anchor.core.haptics.HapticPatterns
 import com.anchor.domain.session.CheckInResponse
 import com.anchor.domain.session.SessionState
 import com.anchor.domain.session.SessionStateMachine
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 
-/** How long the EASING transition holds before moving on to CHECK_IN. Not
- * evidence-based — see plan.md's own note that this whole screen is a
- * placeholder UX layer, not a claim about how long anything should take. */
+/** How long the EASING transition holds before moving on to CHECK_IN. */
 private const val EASING_DELAY_MS = 1500L
 
 /**
  * The real session screen: reacts to [SessionStateMachine.state] and drives
- * [HapticEngine] the same way SessionStateTestScreen does, but with real
- * copy and automatic transitions where the state itself has nothing for a
- * user to decide (ACTIVATING, ROUTING, EASING) instead of dev-only buttons.
+ * [HapticEngine] and [AudioDeliveryEngine].
  *
- * Deliberately generic where a teammate owns the real content: the
- * pulsing circle during GROUNDING/INTERVENTION stands in for whatever
- * Dev C's real BreathingView becomes; SAFETY_STOP shows the same honest
- * placeholder as the dev screen, since the real safety screen (trusted
- * contact, SMS) is Dev B's build.
+ * Supports Dual-Mode Audio & Haptic Delivery:
+ * - If earbuds are attached: speaks private whisper prompts directly into the earbud.
+ * - If no earbuds are attached: mutes 100% of speaker sound for silent haptic-only mode.
  */
 @Composable
 fun SessionScreen(
     machine: SessionStateMachine,
     hapticEngine: HapticEngine,
+    audioEngine: AudioDeliveryEngine = DebugAudioEngine(),
     onExitToHome: () -> Unit
 ) {
     val state by machine.state.collectAsState()
+    val isWhisper = audioEngine.isWhisperModeActive()
 
     // Haptic breathing loop synchronized with the visualizer:
     // 4 seconds continuous ascending vibration (Inhale) + 6 seconds continuous descending vibration (Exhale).
-    // Allows non-visual tactile breath tracking without looking at the phone screen.
     LaunchedEffect(state) {
         if (state == SessionState.GROUNDING || state == SessionState.INTERVENTION) {
             while (true) {
@@ -80,6 +76,7 @@ fun SessionScreen(
             }
         } else {
             hapticEngine.stop()
+            audioEngine.stop()
         }
     }
 
@@ -110,17 +107,26 @@ fun SessionScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Text(
+                text = if (isWhisper) "🎧 Whisper Mode · Private Earbuds" else "🔇 Silent Haptic Mode · Zero Audio",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isWhisper) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
             when (state) {
                 SessionState.IDLE, SessionState.ACTIVATING -> {
                     // ACTIVATING auto-advances near-instantly; nothing to show.
                 }
 
                 SessionState.GROUNDING -> ActivityStage(
+                    audioEngine = audioEngine,
                     onContinue = { machine.finishGrounding() },
                     onCancel = { machine.cancel() }
                 )
 
                 SessionState.INTERVENTION -> ActivityStage(
+                    audioEngine = audioEngine,
                     onContinue = { machine.finishIntervention() },
                     onCancel = null
                 )
@@ -155,13 +161,16 @@ fun SessionScreen(
 }
 
 @Composable
-private fun ActivityStage(onContinue: () -> Unit, onCancel: (() -> Unit)?) {
+private fun ActivityStage(
+    audioEngine: AudioDeliveryEngine,
+    onContinue: () -> Unit,
+    onCancel: (() -> Unit)?
+) {
     var phaseText by remember { mutableStateOf("Breathe In…") }
     var phaseSubtext by remember { mutableStateOf("Inhale slowly through your nose (4s)") }
 
     // Scientific Standard Resonant Paced Breathing:
     // 4s Inhale + 6s Exhale = 10s total cycle (6 breaths/minute).
-    // Clinically proven to maximize HRV resonance & parasympathetic activation in panic/PTSD.
     val infiniteTransition = rememberInfiniteTransition(label = "resonantBreathing")
     val scale by infiniteTransition.animateFloat(
         initialValue = 0.75f,
@@ -182,9 +191,11 @@ private fun ActivityStage(onContinue: () -> Unit, onCancel: (() -> Unit)?) {
         while (true) {
             phaseText = "Breathe In…"
             phaseSubtext = "Inhale slowly (4s)"
+            audioEngine.speakWhisper("Breathe In")
             delay(4000)
             phaseText = "Breathe Out…"
             phaseSubtext = "Exhale completely (6s)"
+            audioEngine.speakWhisper("Breathe Out")
             delay(6000)
         }
     }
@@ -287,7 +298,6 @@ private fun SafetyStopStage(onAcknowledge: () -> Unit) {
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center
         )
-        // Honest placeholder — see class doc. No contact/dial/SMS action exists yet.
         Text(
             "This is a placeholder screen. No contact, dialing, or emergency " +
                 "action happens here yet.",

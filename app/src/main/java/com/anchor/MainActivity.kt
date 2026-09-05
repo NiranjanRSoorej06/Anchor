@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.anchor.core.audio.createAudioEngine
 import com.anchor.core.haptics.createHapticEngine
 import com.anchor.devtools.DevHapticTestScreen
 import com.anchor.devtools.FindSupportScreen
@@ -36,11 +37,6 @@ private enum class Screen { HOME, SESSION, GROUNDING }
 class MainActivity : ComponentActivity() {
 
     companion object {
-        /**
-         * Set by the widget tap and the volume-button long-press trigger
-         * (see widget/GroundingWidget.kt, trigger/AnchorAccessibilityService.kt)
-         * to open straight into [GroundingCaptureScreen] instead of Home.
-         */
         const val EXTRA_LAUNCH_GROUNDING = "com.anchor.EXTRA_LAUNCH_GROUNDING"
     }
 
@@ -60,7 +56,8 @@ class MainActivity : ComponentActivity() {
 
             val context = LocalContext.current
             val machine = remember { SessionStateMachine() }
-            val hapticEngine = remember { createHapticEngine(context) }
+            val hapticEngine = remember { com.anchor.core.haptics.createHapticEngine(context) }
+            val audioEngine = remember { createAudioEngine(context) }
 
             AnchorTheme(variant = themeVariant) {
                 Column(
@@ -69,11 +66,9 @@ class MainActivity : ComponentActivity() {
                         .background(MaterialTheme.colorScheme.background)
                         .statusBarsPadding()
                 ) {
-                    // TEMPORARY — dev-only palette switcher; see ThemeSwitcher.kt.
                     ThemeSwitcher(selected = themeVariant, onSelect = { themeVariant = it })
 
                     Box(modifier = Modifier.weight(1f)) {
-                        // The real app: ANCHOR NOW -> the actual session flow.
                         when (screen) {
                             Screen.HOME -> HomeScreen(
                                 machine = machine,
@@ -83,9 +78,11 @@ class MainActivity : ComponentActivity() {
                             Screen.SESSION -> SessionScreen(
                                 machine = machine,
                                 hapticEngine = hapticEngine,
+                                audioEngine = audioEngine,
                                 onExitToHome = { launchScreen.value = Screen.HOME }
                             )
                             Screen.GROUNDING -> GroundingCaptureScreen(
+                                audioEngine = audioEngine,
                                 onDone = { launchScreen.value = Screen.HOME }
                             )
                         }

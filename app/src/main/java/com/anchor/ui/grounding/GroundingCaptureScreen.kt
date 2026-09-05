@@ -10,21 +10,40 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.anchor.core.audio.AudioDeliveryEngine
+import com.anchor.core.audio.DebugAudioEngine
 import com.anchor.domain.grounding.GroundingScript
 import com.anchor.domain.grounding.GroundingScriptBuilder
 
 /**
  * Rapid sensory grounding screen, reachable from the widget tap or volume-button long-press.
  * Displays a calm, instant 5-sense sensory grounding script to orient someone in acute distress.
+ *
+ * Supports Dual-Mode Audio Delivery:
+ * - If earbuds are attached: speaks whisper audio into the earbud.
+ * - If no earbuds are attached: mutes all sound for 100% silent haptic-only mode.
  */
 @Composable
-fun GroundingCaptureScreen(onDone: () -> Unit) {
+fun GroundingCaptureScreen(
+    audioEngine: AudioDeliveryEngine = DebugAudioEngine(),
+    onDone: () -> Unit
+) {
     val script = remember { GroundingScriptBuilder.build(emptyList()) }
+    val isWhisper = audioEngine.isWhisperModeActive()
+
+    LaunchedEffect(script) {
+        if (isWhisper) {
+            script.sentences.forEach { sentence ->
+                audioEngine.speakWhisper(sentence)
+            }
+        }
+    }
 
     Scaffold { innerPadding ->
         Column(
@@ -35,6 +54,13 @@ fun GroundingCaptureScreen(onDone: () -> Unit) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Text(
+                text = if (isWhisper) "🎧 Whisper Mode · Private Earbuds" else "🔇 Silent Haptic Mode · Zero Audio",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isWhisper) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
             ScriptStage(script = script, onDone = onDone)
         }
     }
