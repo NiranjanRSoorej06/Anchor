@@ -103,6 +103,32 @@ documented gaps," never "proven better." Each card: quote → paper § → safe 
 Master citation (deck footer): Bröcker, Suliman, Olff & Seedat (2023),
 *European Journal of Psychotraumatology*, 14(2), 2209469. PMC10215014.
 
+## New trials (2026-09-07 research pass)
+
+| Study | N | Result | Flaw that matters to us |
+|---|---|---|---|
+| Possemato 2023 full RCT (CS vs TAU) | 234 | CAPS-5 (clinician-rated): NO difference. Self-report: d=0.28 edge. 74% more sessions | Self-report ≠ clinician rating; no dismantling ("what components helped" unknown); modest effect |
+| Possemato 2026 VHA rollout | 348 pts, 30 clinicians | d=−0.37, 90% clinician adoption, 71% kept using | Only ~2.5 sessions/pt vs 4 intended; 29% clinicians dropped; no app-use data at all |
+| Yeager 2022 engagement model | 915 | 55.8% never created account; 58.4% of starters dropped; 11% finished | Nonuse attrition is the modal outcome; engagement self-efficacy predicts use |
+| Bröcker 2022 SA pilots (PCO vs mobile) | 20+20 | Mobile feasible; PCO 30% loss vs mobile 20% | Phone memory + computer literacy blocked web; mobile wins in low-resource |
+| Miller-Graff 2021 Egypt adaptation | qual | Literal Arabic translation failed outright; needed dialect rebuild + clinician forward-translator | WARNING FOR US: Hindi/other-language versions need native rebuild, not translation |
+| Macgowan 2026 WTC protocol | 120 enrolling | First Spanish adaptation; flags offline untested | Confirms no offline evidence exists anywhere |
+| Patel 2025 primary-care pilot | 20 | 11/20 PCL items improved; no control | Tiny, uncontrolled — cite never, note only |
+
+## Flaw → Anchor map (new deltas only)
+
+- **No dismantling data exists anywhere** (Possemato 2023 calls for it explicitly).
+  Our reranking + usage logging is positioned to generate it — say "built to
+  produce the component data the literature asks for."
+- **Self-report vs clinician gap** (CAPS-5 flat, PCL moves): never claim symptom
+  reduction; claim engagement + routing + safety. Our honesty policy already does.
+- **55.8% never create an account:** onboarding must be <60s to first value.
+  Our ANCHOR NOW first-run matters more than any feature.
+- **Egypt lesson → India:** literal translation fails; concepts don't transfer.
+  Indian-language support = native rebuild with local clinicians, Tier1 at best.
+- **PCO lost to mobile in SA:** our mobile-only, offline-first call was right;
+  never build a web companion for the demo.
+
 ## Sources
 - Kuhn 2014: doi:10.7205/milmed-d-13-00271 · Miner 2016: doi:10.1037/tra0000092
 - Kuhn 2017: doi:10.1037/ccp0000163 · Possemato 2016: doi:10.1016/j.genhosppsych.2015.09.005
