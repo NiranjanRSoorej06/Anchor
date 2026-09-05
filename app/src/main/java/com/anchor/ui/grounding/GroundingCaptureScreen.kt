@@ -98,6 +98,8 @@ fun GroundingCaptureScreen(onDone: () -> Unit) {
                 imageCapture
             )
 
+            kotlinx.coroutines.delay(500L)
+
             val bitmap = captureOneFrame(imageCapture, context)
             provider.unbindAll()
 

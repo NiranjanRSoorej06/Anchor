@@ -15,7 +15,10 @@ import kotlin.coroutines.resume
  * first-run model download). Runs entirely on-device, no network call.
  */
 class MlKitObjectLabeler : ObjectLabeler {
-    private val labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS)
+    private val options = ImageLabelerOptions.Builder()
+        .setConfidenceThreshold(0.55f)
+        .build()
+    private val labeler = ImageLabeling.getClient(options)
 
     override suspend fun label(bitmap: Bitmap): List<String> {
         val image = InputImage.fromBitmap(bitmap, 0)

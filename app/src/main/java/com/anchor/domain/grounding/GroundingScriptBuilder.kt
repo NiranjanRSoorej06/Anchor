@@ -20,9 +20,25 @@ object GroundingScriptBuilder {
      * frame, without their consent, is a real dignity/privacy problem —
      * this filter runs before anything else in this file.
      */
-    private val PERSON_LABELS = setOf(
+    /**
+     * Labels naming a person, generic abstract categories, shapes, colors, or room tags
+     * are excluded before building sentences. Only concrete physical objects survive.
+     */
+    private val IGNORED_LABELS = setOf(
+        // Persons
         "person", "people", "human", "human face", "face", "man", "woman",
-        "boy", "girl", "child", "baby", "selfie", "portrait", "crowd"
+        "boy", "girl", "child", "baby", "selfie", "portrait", "crowd",
+        // Generic abstractions & shapes
+        "font", "pattern", "design", "product", "material", "line", "parallel",
+        "rectangle", "circle", "square", "shape", "brand", "logo", "text",
+        "graphics", "art", "illustration", "component", "multimedia", "symbol",
+        // Abstract room/environment/color terms
+        "room", "floor", "ceiling", "wall", "lighting", "space", "indoor",
+        "outdoor", "sky", "black", "white", "blue", "red", "green", "yellow",
+        "shadow", "darkness", "light", "surface", "wood", "metal", "plastic",
+        // Broad category catch-alls
+        "technology", "electronic device", "display device", "accessory",
+        "furniture", "object", "thing", "equipment", "gadget", "device"
     )
 
     /** Used when no real, usable labels are available — never references the camera. */
@@ -44,7 +60,7 @@ object GroundingScriptBuilder {
         val usable = labels
             .map { it.trim() }
             .filter { it.isNotBlank() }
-            .filter { label -> PERSON_LABELS.none { it.equals(label, ignoreCase = true) } }
+            .filter { label -> IGNORED_LABELS.none { it.equals(label, ignoreCase = true) } }
             .distinctBy { it.lowercase() }
             .take(MAX_SENTENCES)
 
