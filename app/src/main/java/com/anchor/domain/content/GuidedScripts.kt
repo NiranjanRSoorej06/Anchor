@@ -61,30 +61,6 @@ data class GuidedScript(
  */
 object GuidedScripts {
 
-    /**
-     * The complete list of bundled guided scripts.
-     *
-     * Order is intentional — grounding exercises come first (acute use),
-     * followed by breathing variants, then PMR (longer, lower-urgency).
-     */
-    val ALL: List<GuidedScript> = listOf(
-        ScriptGrounding54321,
-        ScriptGrounding3Step,
-        ScriptBreathingBox,
-        ScriptBreathingCoherent,
-        ScriptBreathingExhale,
-        ScriptPmrFull
-    )
-
-    /**
-     * Returns the script with the given [id], or `null` if no script
-     * carries that identifier.
-     *
-     * @param id a lowercase-underscore identifier (e.g. `"breathing_box"`).
-     * @return the matching [GuidedScript], or `null`.
-     */
-    fun byId(id: String): GuidedScript? = ALL.firstOrNull { it.id == id }
-
     // ── Private script definitions ─────────────────────────────────────
 
     private val ScriptGrounding54321 = GuidedScript(
@@ -234,4 +210,30 @@ object GuidedScripts {
             ScriptStep("Let your forehead smooth out. You're done — notice how your whole body feels now.", 10)
         )
     )
+
+    // ── Public API ────────────────────────────────────────────────────
+
+    /**
+     * The complete list of bundled guided scripts.
+     *
+     * Order is intentional — grounding exercises come first (acute use),
+     * followed by breathing variants, then PMR (longer, lower-urgency).
+     */
+    val ALL: List<GuidedScript> = listOf(
+        ScriptGrounding54321,
+        ScriptGrounding3Step,
+        ScriptBreathingBox,
+        ScriptBreathingCoherent,
+        ScriptBreathingExhale,
+        ScriptPmrFull
+    )
+
+    /**
+     * Returns the script with the given [id], or `null` if no script
+     * carries that identifier.
+     *
+     * @param id a lowercase-underscore identifier (e.g. `"breathing_box"`).
+     * @return the matching [GuidedScript], or `null`.
+     */
+    fun byId(id: String): GuidedScript? = ALL.firstOrNull { it.id == id }
 }

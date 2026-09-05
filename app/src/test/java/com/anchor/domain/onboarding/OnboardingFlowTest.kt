@@ -62,12 +62,12 @@ class OnboardingFlowTest {
 
     @Test
     fun `skip path advances without recording`() {
-        assertTrue(flow.skipCurrent() is TransitionResult.Success) // WELCOME skipped → CONSENT
+        assertTrue(flow.completeCurrent() is TransitionResult.Success) // WELCOME completed → CONSENT
         assertTrue(flow.skipCurrent() is TransitionResult.Success) // CONSENT skipped → PCL5
         assertTrue(flow.skipCurrent() is TransitionResult.Success) // PCL5 skipped → SITUATION
 
         assertEquals(OnboardingStep.SITUATION, flow.currentStep)
-        assertTrue(flow.completedSections.isEmpty())
+        assertEquals(setOf(OnboardingStep.WELCOME), flow.completedSections)
     }
 
     // ── 4. skipCurrent from WELCOME rejected ──────────────────────────
@@ -100,7 +100,7 @@ class OnboardingFlowTest {
 
     @Test
     fun `finish from CONSENT is rejected`() {
-        flow.skipCurrent() // WELCOME → CONSENT
+        flow.completeCurrent() // WELCOME → CONSENT
         val result = flow.finish()
         assertTrue(result is TransitionResult.Rejected)
         assertEquals(OnboardingStep.CONSENT, flow.currentStep)

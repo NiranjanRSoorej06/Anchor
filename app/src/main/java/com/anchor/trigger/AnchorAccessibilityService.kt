@@ -28,7 +28,7 @@ class AnchorAccessibilityService : AccessibilityService() {
 
     private companion object {
         const val TAG = "AnchorA11yService"
-        const val LONG_PRESS_TIMEOUT_MS = 1500L
+        const val LONG_PRESS_TIMEOUT_MS = 800L
         const val WAKE_LOCK_TIMEOUT_MS = 3000L
     }
 
@@ -73,8 +73,6 @@ class AnchorAccessibilityService : AccessibilityService() {
                     }
                 }
             }
-            // Never swallow the keypress — the system still handles the
-            // ordinary volume change, exactly like the Nugon reference.
             return false
         }
         return super.onKeyEvent(event)
@@ -85,7 +83,7 @@ class AnchorAccessibilityService : AccessibilityService() {
     }
 
     override fun onInterrupt() {
-        // No-op: nothing to clean up beyond the wake lock, already handled above.
+        releaseWakeLock()
     }
 
     override fun onDestroy() {
@@ -106,8 +104,19 @@ class AnchorAccessibilityService : AccessibilityService() {
     }
 
     private fun triggerGrounding() {
+        try {
+            com.anchor.core.haptics.createHapticEngine(this).play(com.anchor.core.haptics.HapticPatterns.DOUBLE_PULSE)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to play trigger haptic: ${e.message}")
+        }
+
         val intent = Intent(this, MainActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            )
             putExtra(MainActivity.EXTRA_LAUNCH_GROUNDING, true)
         }
         startActivity(intent)

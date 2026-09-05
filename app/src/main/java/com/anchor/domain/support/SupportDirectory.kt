@@ -168,12 +168,11 @@ object SupportDirectory {
         val query = stateQuery.trim()
 
         val regional = ALL.filter { it.regions.contains(query) }
-        val nationwide = ALL.filter { it.regions.contains(NATIONWIDE) }
+        if (regional.isEmpty()) return ALL
+        val nationwide = ALL.filter { it.regions.contains(NATIONWIDE) && it.category != SupportCategory.THERAPIST_DIRECTORY }
+        val otherRegionals = ALL.filter { !it.regions.contains(query) && !it.regions.contains(NATIONWIDE) }
         val directory = ALL.filter { it.category == SupportCategory.THERAPIST_DIRECTORY }
 
-        // Build result: regionals first, then NATIONWIDE, then directory.
-        // Avoid duplicates — a nationwide entry could theoretically also
-        // match the query, but in practice our data doesn't have that.
         val seen = mutableSetOf<String>()
         val result = mutableListOf<SupportEntry>()
 
@@ -183,11 +182,13 @@ object SupportDirectory {
         for (entry in nationwide) {
             if (seen.add(entry.id)) result += entry
         }
+        for (entry in otherRegionals) {
+            if (seen.add(entry.id)) result += entry
+        }
         for (entry in directory) {
             if (seen.add(entry.id)) result += entry
         }
 
-        // Fallback: if query matched nothing, return ALL (nationwide + dir)
         return if (result.isEmpty()) ALL else result
     }
 }
