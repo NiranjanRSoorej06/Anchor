@@ -52,6 +52,16 @@ class TriggerLogStore(context: Context) {
         prefs.edit().putString(KEY_ENTRIES_JSON, array.toString()).apply()
     }
 
+    /** Deletes an entry by [FollowUpCheckIn.episodeId]. */
+    fun delete(episodeId: String) {
+        val entries = linkedMapOf<String, FollowUpCheckIn>()
+        all().forEach { entries[it.episodeId] = it }
+        entries.remove(episodeId)
+        val array = JSONArray()
+        entries.values.forEach { array.put(toJson(it)) }
+        prefs.edit().putString(KEY_ENTRIES_JSON, array.toString()).apply()
+    }
+
     private fun toJson(entry: FollowUpCheckIn): JSONObject = JSONObject().apply {
         put("episodeId", entry.episodeId)
         put("triggerIds", JSONArray(entry.triggerIds.toList()))
