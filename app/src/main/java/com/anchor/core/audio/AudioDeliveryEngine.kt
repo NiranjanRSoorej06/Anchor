@@ -138,6 +138,15 @@ class WhisperAudioEngine(
         val whisperActive = isWhisperModeActive()
         Log.i(TAG, "speakWhisper requested: '$text' (whisperActive=$whisperActive, ttsReady=$isTtsReady)")
 
+        if (!whisperActive) {
+            // Per this class's own contract: no private headset connected means
+            // 100% silent, haptic-only mode — never fall through to speaking
+            // out loud on the speaker. This check was previously logged but
+            // never actually enforced.
+            Log.d(TAG, "No private headset connected; muting speech: $text")
+            return
+        }
+
         if (tts == null) {
             Log.d(TAG, "TTS instance was null; re-initializing engine for: $text")
             isTtsReady = false
@@ -204,7 +213,10 @@ class DebugAudioEngine(
     override fun isWhisperModeActive(): Boolean = earbudConnected
 
     override fun speakWhisper(text: String, queueMode: Int) {
-        spokenPhrases.add(text)
+        // Mirrors WhisperAudioEngine's contract: silent when no private
+        // headset is connected, so tests against this fake catch the same
+        // muting behavior production has.
+        if (earbudConnected) spokenPhrases.add(text)
     }
 
     override fun stop() {

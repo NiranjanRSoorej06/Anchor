@@ -45,16 +45,33 @@ fun CompanionModeScreen(
             ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED
         )
     }
+    var hasLocationPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+    var shareLocation by remember { mutableStateOf(prefs.shareLocationOnAlert) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         hasSmsPermission = isGranted
     }
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        hasLocationPermission = results.values.any { it }
+    }
 
     LaunchedEffect(Unit) {
         if (!hasSmsPermission) {
             permissionLauncher.launch(Manifest.permission.SEND_SMS)
+        }
+        if (!hasLocationPermission && shareLocation) {
+            locationPermissionLauncher.launch(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+            )
         }
     }
 
@@ -109,7 +126,7 @@ fun CompanionModeScreen(
                         )
                     }
                     Text(
-                        text = "When emergency mode is triggered, a silent SMS notification is sent to your trusted contacts: \"They may need a quiet moment.\" No medical diagnosis, no details.",
+                        text = "When emergency mode is triggered, a silent SMS notification is sent to your trusted contacts: \"They may need a quiet moment.\" No medical diagnosis, no details — just your last-known coordinates if you've enabled that below (as plain numbers, not a link — some carriers block SMS links).",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
                     )
@@ -153,6 +170,80 @@ fun CompanionModeScreen(
                             prefs.isEnabled = checked
                         }
                     )
+                }
+            }
+
+            // Share Location Toggle Card
+            Card(
+                shape = MaterialTheme.shapes.medium,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Share location in alerts",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Adds your last-known coordinates to the alert (as plain numbers, not a link — links get blocked by some carriers), so they know where to reach you. Never stored or sent anywhere else.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                    Switch(
+                        checked = shareLocation,
+                        onCheckedChange = { checked ->
+                            if (checked && !hasLocationPermission) {
+                                locationPermissionLauncher.launch(
+                                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                )
+                            }
+                            shareLocation = checked
+                            prefs.shareLocationOnAlert = checked
+                        }
+                    )
+                }
+            }
+
+            if (shareLocation && !hasLocationPermission) {
+                Card(
+                    shape = MaterialTheme.shapes.small,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Location permission needed to include your location in alerts",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.weight(1f)
+                        )
+                        TextButton(
+                            onClick = {
+                                locationPermissionLauncher.launch(
+                                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                )
+                            }
+                        ) {
+                            Text("Grant", fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
 

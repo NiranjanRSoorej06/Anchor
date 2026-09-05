@@ -45,4 +45,15 @@ sealed interface RoutineStep {
      * @property durationSec Duration in whole seconds (> 0, ≤ 120).
      */
     data class Pause(val durationSec: Int) : RoutineStep
+
+    /**
+     * Playback of a user-picked audio clip (e.g. a loved one's voice, or
+     * any local mp3) instead of / alongside the bundled safety phrase.
+     *
+     * @property uri Opaque content URI string resolved by the audio layer
+     *   at playback time (blank is invalid).
+     * @property loop Whether playback repeats to fill the step's caller-side
+     *   duration, or plays once.
+     */
+    data class CustomAudio(val uri: String, val loop: Boolean = true) : RoutineStep
 }

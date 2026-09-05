@@ -21,16 +21,16 @@ import androidx.glance.unit.ColorProvider
 import com.anchor.MainActivity
 
 /**
- * Home-screen widget trigger for the grounding feature (see plan.md). A
- * single tap target: opens [MainActivity] straight into
- * [com.anchor.ui.grounding.GroundingCaptureScreen] via the same launch
- * extra the volume-button trigger in [com.anchor.trigger.AnchorAccessibilityService]
- * uses, so both triggers converge on the identical flow.
+ * Home-screen widget trigger for the main Anchor SOS flow. A single tap
+ * target: opens [MainActivity] straight into `ui/session/SessionScreen.kt`
+ * via the same launch extra the volume-button trigger in
+ * [com.anchor.trigger.AnchorAccessibilityService] uses, so both triggers
+ * converge on the identical flow as the ANCHOR NOW button.
  */
 class GroundingWidget : GlanceAppWidget() {
 
     private companion object {
-        val LAUNCH_GROUNDING_KEY = ActionParameters.Key<Boolean>(MainActivity.EXTRA_LAUNCH_GROUNDING)
+        val LAUNCH_ANCHOR_KEY = ActionParameters.Key<Boolean>(MainActivity.EXTRA_LAUNCH_ANCHOR)
     }
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -42,12 +42,12 @@ class GroundingWidget : GlanceAppWidget() {
                     .clickable(
                         actionStartActivity(
                             intent = Intent(context, MainActivity::class.java),
-                            parameters = actionParametersOf(LAUNCH_GROUNDING_KEY to true)
+                            parameters = actionParametersOf(LAUNCH_ANCHOR_KEY to true)
                         )
                     )
             ) {
                 Text(
-                    text = "Ground Me",
+                    text = "Anchor Now",
                     style = TextStyle(
                         color = ColorProvider(Color.White),
                         fontWeight = FontWeight.Medium

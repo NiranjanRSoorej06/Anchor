@@ -66,6 +66,11 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
+    // Full Material icon set (Mic/Pause/etc.) — the core icon set bundled
+    // with material3 only ships ~49 generic icons, not enough for the
+    // voice-note recording UI (VoiceNoteRow).
+    implementation("androidx.compose.material:material-icons-extended")
+
     // DM Sans / DM Mono / Newsreader, resolved on-device via the Google
     // Fonts provider (Play services font cache) — no bundled font binaries,
     // falls back to the system font while resolving or if unavailable.
@@ -89,6 +94,13 @@ dependencies {
     implementation("com.google.mlkit:image-labeling:17.0.9")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    // Companion Mode's location-in-alert feature. Real devices cache a
+    // location fix almost exclusively through this fused provider — the
+    // classic android.location.LocationManager providers ("gps"/"network")
+    // are rarely populated in practice, confirmed empirically on-device
+    // (see core/location/LastKnownLocationProvider.kt's KDoc).
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     testImplementation("junit:junit:4.13.2")
 }

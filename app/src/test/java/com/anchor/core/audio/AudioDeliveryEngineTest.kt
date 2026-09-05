@@ -20,12 +20,12 @@ class AudioDeliveryEngineTest {
     }
 
     @Test
-    fun `debug engine records speech when earbuds disconnected`() {
+    fun `debug engine mutes speech when earbuds disconnected`() {
         val engine = DebugAudioEngine(earbudConnected = false)
         assertFalse(engine.isWhisperModeActive())
 
         engine.speakWhisper("Breathe In")
-        assertEquals(1, engine.spokenPhrases.size)
+        assertTrue(engine.spokenPhrases.isEmpty())
     }
 
     @Test

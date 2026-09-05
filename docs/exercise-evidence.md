@@ -32,6 +32,38 @@ ours, claims stay inside the evidence.
 - **Own-voice calming:** real fMRI self-referential effects (Kim 2024) +
   empathic-voice anxiety reduction (d≈0.5, non-PTSD samples). Extrapolation
   to PTSD untested — "informed by", never "proven."
+- **Safe-place visualization (internally imagined, not media playback):**
+  real technique, narrow evidence — Korn & Leeds 2002 (J. Clinical
+  Psychology 58(12), 1465-1487, PubMed 12455016), EMDR resource-
+  installation in complex-PTSD stabilization; pilot/case-series tier, not
+  RCT. ADJUNCT_EVIDENCE. Ships as `visualization_monsoon`/`visualization_temple`
+  guided scripts (Edit Anchor's "Safe-place visualization" comfort tool).
+  **Critical distinction, confirmed against SAMHSA trauma-informed care and
+  Hammond & Brown 2025 (already cited above): grounding literature never
+  recommends watching curated photos/video as a technique** — only
+  attending to the real environment (5-4-3-2-1) or imagining a safe place.
+  A "soothing video library" would be EVIDENCE_GAP if ever built; we did
+  not build one for exactly this reason.
+- **User's own safe-place photo (optional layer on the visualization
+  above):** more speculative — extrapolated from attachment/safety-cue
+  neuroscience, not tested as an app feature. Coan, Schaefer & Davidson
+  2006 (Psychological Science 17(12), 1032-1039): hand-holding from a
+  partner blunted fMRI threat response. Selcuk et al. 2018 (Soc Cogn
+  Affect Neurosci 13(9), 989-998, PubMed 30137625): mentally activating an
+  attachment figure blocked fear-conditioning acquisition. Both studies
+  manipulate touch or imagined presence, not a viewed photo — a real photo
+  is a plausible but untested extension. CLINICAL_CAUTION_DERIVED. Frame
+  as "may help," never "proven to calm."
+- **Ambient white/pink noise masking:** real but mixed, mostly non-PTSD
+  evidence (sleep continuity, pediatric procedural anxiety) — no PTSD-
+  specific trial found. Brown noise specifically has the weakest evidence
+  of the three (comfort/preference claims, not peer-reviewed PTSD trials)
+  — this is why `E009`'s existing brown-noise entry stays EVIDENCE_GAP and
+  why the new ambient-noise feature ships white/pink only, generated
+  on-device (`core/audio/NoiseGenerator`), never brown. ADJUNCT_EVIDENCE.
+  **Framing constraint: masks/reduces noticeability of ambient sound —
+  never claim it "cancels" surrounding sound**, which is a hardware ANC
+  capability no phone app controls.
 
 ## Borrow-safe (PTSD Coach-style, own words + evidence labels)
 5-4-3-2-1 grounding, paced breathing scripts, PMR (Jacobson 1938, public

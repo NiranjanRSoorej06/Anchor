@@ -17,11 +17,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,16 +47,18 @@ import com.anchor.core.audio.AudioDeliveryEngine
 import com.anchor.core.audio.DebugAudioEngine
 import com.anchor.core.haptics.DebugHapticEngine
 import com.anchor.core.haptics.HapticEngine
-import com.anchor.core.haptics.HapticPatterns
 import com.anchor.core.logging.SprintLogStore
 import com.anchor.domain.session.SessionStateMachine
 import com.anchor.ui.theme.AnchorTheme
 
 /**
- * The real Anchor entry point. Per docs/vision.md's Non-negotiable #2:
+ * The real Anchor entry point. Per `docs/vision.md`'s Non-negotiable #2:
  * "ANCHOR NOW is hero entry. Big one-tap button."
  *
- * Supports Dual-Mode Audio & Haptic Delivery and Dashboard Reflection Logs viewer.
+ * Home layout (per the approved home-redesign plan): the Anchor button up
+ * top, an "Edit Anchor" link beneath it, then three section cards — Manage
+ * Symptoms, Tools, Get Support — with Settings tucked into a corner icon
+ * rather than sitting in the main flow.
  */
 @Composable
 fun HomeScreen(
@@ -62,77 +66,108 @@ fun HomeScreen(
     hapticEngine: HapticEngine,
     audioEngine: AudioDeliveryEngine = DebugAudioEngine(),
     onEnterSession: () -> Unit,
-    onFindSupport: () -> Unit,
+    onEditAnchor: () -> Unit = {},
+    onManageSymptoms: () -> Unit,
     onTools: () -> Unit,
-    onCompanionMode: () -> Unit = {}
+    onFindSupport: () -> Unit,
+    onSettings: () -> Unit = {}
 ) {
-    val context = LocalContext.current
     val isWhisper = audioEngine.isWhisperModeActive()
-    var showLogsDialog by remember { mutableStateOf(false) }
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(onClick = onSettings) {
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = if (isWhisper) "Whisper Mode · Private Earbuds" else "Speaker Mode · Soothing Voice",
                 style = MaterialTheme.typography.labelSmall,
                 color = if (isWhisper) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 8.dp, bottom = 20.dp)
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                AnchorNowButton {
-                    machine.start()
-                    onEnterSession()
-                }
+            AnchorNowButton {
+                machine.start()
+                onEnterSession()
             }
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
-                ) {
-                    OutlinedButton(onClick = onFindSupport) { Text("Find Support") }
-                    OutlinedButton(onClick = onTools) { Text("Tools") }
-                    OutlinedButton(onClick = onCompanionMode) { Text("Companion") }
-                }
-
-                OutlinedButton(
-                    onClick = { showLogsDialog = true },
-                    modifier = Modifier.fillMaxWidth(0.9f)
-                ) {
-                    Text("Reflection Logs")
-                }
+            TextButton(onClick = onEditAnchor, modifier = Modifier.padding(top = 12.dp)) {
+                Text("Edit Anchor")
             }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            SectionCard(
+                title = "Manage Symptoms",
+                subtitle = "Pick what you're feeling, get a matched exercise",
+                onClick = onManageSymptoms
+            )
+            SectionCard(
+                title = "Tools",
+                subtitle = "Trigger log, meds, journal, goals, progress",
+                onClick = onTools
+            )
+            SectionCard(
+                title = "Get Support",
+                subtitle = "Helplines, nearby care, your trusted contacts",
+                onClick = onFindSupport
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
 
             Text(
                 text = "Not a replacement for professional care · works offline",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp)
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(vertical = 16.dp)
             )
         }
+    }
+}
 
-        if (showLogsDialog) {
-            SprintLogsViewerDialog(
-                logStore = SprintLogStore(context),
-                onDismiss = { showLogsDialog = false }
+@Composable
+private fun SectionCard(title: String, subtitle: String, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp)
             )
         }
     }
@@ -164,8 +199,13 @@ private fun AnchorNowButton(onClick: () -> Unit) {
     }
 }
 
+/**
+ * Reflection-logs viewer, kept here (non-private) so [com.anchor.ui.settings.SettingsScreen]
+ * can reuse it without duplicating the dialog. Superseded by the real Track
+ * Progress screen in a later phase.
+ */
 @Composable
-private fun SprintLogsViewerDialog(
+fun SprintLogsViewerDialogPublic(
     logStore: SprintLogStore,
     onDismiss: () -> Unit
 ) {
@@ -292,8 +332,9 @@ private fun HomeScreenPreview() {
             hapticEngine = DebugHapticEngine(),
             audioEngine = DebugAudioEngine(),
             onEnterSession = {},
-            onFindSupport = {},
-            onTools = {}
+            onManageSymptoms = {},
+            onTools = {},
+            onFindSupport = {}
         )
     }
 }

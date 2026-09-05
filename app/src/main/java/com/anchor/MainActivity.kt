@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,25 +21,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.anchor.core.audio.createAudioEngine
 import com.anchor.core.haptics.createHapticEngine
-import com.anchor.devtools.DevHapticTestScreen
-import com.anchor.devtools.FindSupportScreen
-import com.anchor.devtools.RoutingLabScreen
-import com.anchor.devtools.SessionStateTestScreen
-import com.anchor.devtools.ThemeSwitcher
-import com.anchor.devtools.ToolsLibraryScreen
+import com.anchor.domain.session.SessionState
 import com.anchor.domain.session.SessionStateMachine
 import com.anchor.ui.HomeScreen
 import com.anchor.ui.grounding.GroundingCaptureScreen
+import com.anchor.ui.routine.EditAnchorScreen
 import com.anchor.ui.session.SessionScreen
+import com.anchor.ui.settings.SettingsScreen
+import com.anchor.ui.support.CommunitiesScreen
+import com.anchor.ui.support.CrisisResourcesScreen
+import com.anchor.ui.support.FindProfessionalCareScreen
+import com.anchor.ui.support.SupportHubScreen
+import com.anchor.ui.support.TreatmentLocatorScreen
+import com.anchor.ui.symptoms.ManageSymptomsScreen
 import com.anchor.ui.theme.AnchorTheme
 import com.anchor.ui.theme.ThemeVariant
+import com.anchor.ui.tools.GoalsScreen
+import com.anchor.ui.tools.JournalScreen
+import com.anchor.ui.tools.MedTrackerScreen
+import com.anchor.ui.tools.ToolsHubScreen
+import com.anchor.ui.tools.TrackProgressScreen
+import com.anchor.ui.tools.TriggerLogScreen
 
-private enum class Screen { HOME, SESSION, GROUNDING, SUPPORT, TOOLS, COMPANION }
+private enum class Screen {
+    HOME, SESSION, GROUNDING,
+    MANAGE_SYMPTOMS, TOOLS_HOME, EDIT_ANCHOR,
+    TOOLS_TRIGGER_LOG, TOOLS_MEDS, TOOLS_JOURNAL, TOOLS_GOALS, TOOLS_PROGRESS,
+    GET_SUPPORT, SUPPORT_CRISIS, SUPPORT_PROFESSIONAL, SUPPORT_LOCATOR, SUPPORT_COMMUNITIES,
+    COMPANION, SETTINGS, SAFETY_PHRASES
+}
 
 class MainActivity : ComponentActivity() {
 
     companion object {
-        const val EXTRA_LAUNCH_GROUNDING = "com.anchor.EXTRA_LAUNCH_GROUNDING"
+        /** Fired by the volume-button trigger and the home-screen widget — both launch the real Anchor SOS flow. */
+        const val EXTRA_LAUNCH_ANCHOR = "com.anchor.EXTRA_LAUNCH_ANCHOR"
     }
 
     private val launchScreen = mutableStateOf(Screen.HOME)
@@ -65,6 +82,18 @@ class MainActivity : ComponentActivity() {
             val hapticEngine = remember { com.anchor.core.haptics.createHapticEngine(context) }
             val audioEngine = remember { createAudioEngine(context) }
 
+            // The volume-button trigger and the widget both jump straight to
+            // Screen.SESSION via the launch intent, bypassing HomeScreen's
+            // own `machine.start()` call — start the machine here instead
+            // whenever we land on SESSION from IDLE. Safe to call from the
+            // Home button's path too: start() on an already-ACTIVATING
+            // machine is a harmless no-op rejection.
+            LaunchedEffect(screen) {
+                if (screen == Screen.SESSION && machine.currentState == SessionState.IDLE) {
+                    machine.start()
+                }
+            }
+
             AnchorTheme(variant = themeVariant) {
                 Column(
                     modifier = Modifier
@@ -72,8 +101,6 @@ class MainActivity : ComponentActivity() {
                         .background(MaterialTheme.colorScheme.background)
                         .statusBarsPadding()
                 ) {
-                    ThemeSwitcher(selected = themeVariant, onSelect = { themeVariant = it })
-
                     Box(modifier = Modifier.weight(1f)) {
                         when (screen) {
                             Screen.HOME -> HomeScreen(
@@ -81,34 +108,71 @@ class MainActivity : ComponentActivity() {
                                 hapticEngine = hapticEngine,
                                 audioEngine = audioEngine,
                                 onEnterSession = { launchScreen.value = Screen.SESSION },
-                                onFindSupport = { launchScreen.value = Screen.SUPPORT },
-                                onTools = { launchScreen.value = Screen.TOOLS },
-                                onCompanionMode = { launchScreen.value = Screen.COMPANION }
+                                onEditAnchor = { launchScreen.value = Screen.EDIT_ANCHOR },
+                                onManageSymptoms = { launchScreen.value = Screen.MANAGE_SYMPTOMS },
+                                onTools = { launchScreen.value = Screen.TOOLS_HOME },
+                                onFindSupport = { launchScreen.value = Screen.GET_SUPPORT },
+                                onSettings = { launchScreen.value = Screen.SETTINGS }
                             )
                             Screen.SESSION -> SessionScreen(
                                 machine = machine,
                                 hapticEngine = hapticEngine,
                                 audioEngine = audioEngine,
-                                onExitToHome = { launchScreen.value = Screen.HOME }
+                                onExitToHome = { launchScreen.value = Screen.HOME },
+                                onGoToGetSupport = { launchScreen.value = Screen.GET_SUPPORT },
+                                onGoToTrackProgress = { launchScreen.value = Screen.TOOLS_HOME }
                             )
                             Screen.GROUNDING -> GroundingCaptureScreen(
                                 audioEngine = audioEngine,
                                 onDone = { launchScreen.value = Screen.HOME }
                             )
-                            Screen.SUPPORT -> FindSupportScreen()
-                            Screen.TOOLS -> ToolsLibraryScreen()
+                            Screen.MANAGE_SYMPTOMS -> ManageSymptomsScreen(
+                                audioEngine = audioEngine,
+                                onBack = { launchScreen.value = Screen.HOME },
+                                onNeedProfessionalHelp = { launchScreen.value = Screen.GET_SUPPORT }
+                            )
+                            Screen.TOOLS_HOME -> ToolsHubScreen(
+                                onBack = { launchScreen.value = Screen.HOME },
+                                onTriggerLog = { launchScreen.value = Screen.TOOLS_TRIGGER_LOG },
+                                onMedTracker = { launchScreen.value = Screen.TOOLS_MEDS },
+                                onJournal = { launchScreen.value = Screen.TOOLS_JOURNAL },
+                                onGoals = { launchScreen.value = Screen.TOOLS_GOALS },
+                                onTrackProgress = { launchScreen.value = Screen.TOOLS_PROGRESS }
+                            )
+                            Screen.TOOLS_TRIGGER_LOG -> TriggerLogScreen(onBack = { launchScreen.value = Screen.TOOLS_HOME })
+                            Screen.TOOLS_MEDS -> MedTrackerScreen(onBack = { launchScreen.value = Screen.TOOLS_HOME })
+                            Screen.TOOLS_JOURNAL -> JournalScreen(onBack = { launchScreen.value = Screen.TOOLS_HOME })
+                            Screen.TOOLS_GOALS -> GoalsScreen(onBack = { launchScreen.value = Screen.TOOLS_HOME })
+                            Screen.TOOLS_PROGRESS -> TrackProgressScreen(onBack = { launchScreen.value = Screen.TOOLS_HOME })
+                            Screen.EDIT_ANCHOR -> EditAnchorScreen(
+                                onBack = { launchScreen.value = Screen.HOME }
+                            )
+                            Screen.GET_SUPPORT -> SupportHubScreen(
+                                onBack = { launchScreen.value = Screen.HOME },
+                                onCrisisResources = { launchScreen.value = Screen.SUPPORT_CRISIS },
+                                onFindProfessionalCare = { launchScreen.value = Screen.SUPPORT_PROFESSIONAL },
+                                onTreatmentLocator = { launchScreen.value = Screen.SUPPORT_LOCATOR },
+                                onPersonalContacts = { launchScreen.value = Screen.COMPANION },
+                                onCommunities = { launchScreen.value = Screen.SUPPORT_COMMUNITIES }
+                            )
+                            Screen.SUPPORT_CRISIS -> CrisisResourcesScreen(onBack = { launchScreen.value = Screen.GET_SUPPORT })
+                            Screen.SUPPORT_PROFESSIONAL -> FindProfessionalCareScreen(onBack = { launchScreen.value = Screen.GET_SUPPORT })
+                            Screen.SUPPORT_LOCATOR -> TreatmentLocatorScreen(onBack = { launchScreen.value = Screen.GET_SUPPORT })
+                            Screen.SUPPORT_COMMUNITIES -> CommunitiesScreen(onBack = { launchScreen.value = Screen.GET_SUPPORT })
                             Screen.COMPANION -> com.anchor.ui.companion.CompanionModeScreen(
                                 onBack = { launchScreen.value = Screen.HOME }
                             )
+                            Screen.SETTINGS -> SettingsScreen(
+                                themeVariant = themeVariant,
+                                onThemeSelect = { themeVariant = it },
+                                onCompanionMode = { launchScreen.value = Screen.COMPANION },
+                                onSafetyPhrases = { launchScreen.value = Screen.SAFETY_PHRASES },
+                                onBack = { launchScreen.value = Screen.HOME }
+                            )
+                            Screen.SAFETY_PHRASES -> com.anchor.ui.settings.SafetyPhrasesScreen(
+                                onBack = { launchScreen.value = Screen.SETTINGS }
+                            )
                         }
-
-                        // Dev tooling — still reachable by swapping the line above
-                        // for manual verification. Not part of the real app flow.
-                        // SessionStateTestScreen()
-                        // RoutingLabScreen()
-                        // DevHapticTestScreen()
-                        // FindSupportScreen()
-                        // ToolsLibraryScreen()
                     }
                 }
             }
@@ -141,9 +205,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun applyLaunchIntent(intent: Intent?) {
-        if (intent?.getBooleanExtra(EXTRA_LAUNCH_GROUNDING, false) == true) {
-            launchScreen.value = Screen.GROUNDING
-            intent.removeExtra(EXTRA_LAUNCH_GROUNDING)
+        if (intent?.getBooleanExtra(EXTRA_LAUNCH_ANCHOR, false) == true) {
+            launchScreen.value = Screen.SESSION
+            intent.removeExtra(EXTRA_LAUNCH_ANCHOR)
         }
     }
 }

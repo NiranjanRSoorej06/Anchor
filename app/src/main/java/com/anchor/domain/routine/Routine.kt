@@ -13,7 +13,7 @@ data class Routine(
     val name: String,
     val steps: List<RoutineStep>,
 ) {
-    /** Returns the total wall-clock duration in seconds, summing [RoutineStep.Haptic], [RoutineStep.Breathing], and [RoutineStep.Pause] durations. [RoutineStep.SafetyPhrase] counts as 0. */
+    /** Returns the total wall-clock duration in seconds, summing [RoutineStep.Haptic], [RoutineStep.Breathing], and [RoutineStep.Pause] durations. [RoutineStep.SafetyPhrase] and [RoutineStep.CustomAudio] count as 0 — their duration is caller-side, not self-declared. */
     fun totalDurationSec(): Int =
         steps.sumOf { step ->
             when (step) {
@@ -21,6 +21,7 @@ data class Routine(
                 is RoutineStep.Breathing -> step.durationSec
                 is RoutineStep.SafetyPhrase -> 0
                 is RoutineStep.Pause -> step.durationSec
+                is RoutineStep.CustomAudio -> 0
             }
         }
 

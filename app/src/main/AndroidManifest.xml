@@ -4,6 +4,16 @@
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Companion Mode only: attaches a Maps link to the trusted-contact
+         SOS alert. Never used for the "near you" clinic directory (that
+         stays a manual PIN lookup, per docs/ptsd-care-india-map.md). -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Safety Phrases: record your own voice reading a grounding phrase.
+         Only requested when the user taps Record; import-from-device
+         needs no permission at all (Storage Access Framework). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:allowBackup="false"
@@ -23,6 +33,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".core.reminders.LogReminderReceiver"
+            android:exported="false" />
 
         <receiver
             android:name=".widget.GroundingWidgetReceiver"

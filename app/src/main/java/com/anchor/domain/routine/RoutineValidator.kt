@@ -54,6 +54,11 @@ object RoutineValidator {
                         reasons += "Step ${index + 1}: SafetyPhrase clipId must not be blank"
                     }
                 }
+                is RoutineStep.CustomAudio -> {
+                    if (step.uri.isBlank()) {
+                        reasons += "Step ${index + 1}: CustomAudio uri must not be blank"
+                    }
+                }
             }
         }
 

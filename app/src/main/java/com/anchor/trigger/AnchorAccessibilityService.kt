@@ -12,12 +12,14 @@ import android.util.Log
 import com.anchor.MainActivity
 
 /**
- * Volume-button long-press trigger for the grounding feature (see plan.md).
+ * Volume-button rapid-triple-tap trigger for the main Anchor SOS flow —
+ * the hardware-side counterpart to HomeScreen's ANCHOR NOW button; both
+ * launch the identical flow in `ui/session/SessionScreen.kt`.
  *
- * Ported directly from the mechanism verified in `jzsalinas/nugon-android`'s
- * `NugonAccessibilityService.java` (long-press timer + partial wake lock),
- * adapted to Kotlin and to Anchor's target (open the grounding screen,
- * not send an SMS).
+ * Wake-lock/media-session plumbing ported from the mechanism verified in
+ * `jzsalinas/nugon-android`'s `NugonAccessibilityService.java`, adapted to
+ * Kotlin and to Anchor's own trigger (open the app straight into the SOS
+ * flow, not send an SMS).
  *
  * Hackathon-demo scope only, deliberately: this works while the screen is
  * on, or locked-but-awake — the same limitation the Nugon reference itself
@@ -119,7 +121,7 @@ class AnchorAccessibilityService : AccessibilityService() {
                 if (tapCount >= 3) {
                     tapCount = 0
                     Log.i(TAG, "Rapid triple-tap volume trigger detected!")
-                    triggerGrounding()
+                    triggerAnchor()
                     return true
                 }
             }
@@ -216,7 +218,7 @@ class AnchorAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun triggerGrounding() {
+    private fun triggerAnchor() {
         try {
             val audioEngine = com.anchor.core.audio.createAudioEngine(this)
             audioEngine.speakWhisper("You are in a safe place.")
@@ -246,7 +248,7 @@ class AnchorAccessibilityService : AccessibilityService() {
                 Intent.FLAG_ACTIVITY_CLEAR_TOP or
                 Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
             )
-            putExtra(MainActivity.EXTRA_LAUNCH_GROUNDING, true)
+            putExtra(MainActivity.EXTRA_LAUNCH_ANCHOR, true)
         }
 
         val options = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -267,7 +269,7 @@ class AnchorAccessibilityService : AccessibilityService() {
             } else {
                 pendingIntent.send()
             }
-            Log.i(TAG, "Successfully sent PendingIntent to launch Grounding screen")
+            Log.i(TAG, "Successfully sent PendingIntent to launch Anchor SOS flow")
         } catch (e: Exception) {
             Log.w(TAG, "PendingIntent launch failed, falling back to startActivity: ${e.message}")
             try {

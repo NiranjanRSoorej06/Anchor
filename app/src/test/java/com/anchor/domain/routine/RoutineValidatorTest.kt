@@ -208,6 +208,36 @@ class RoutineValidatorTest {
         assertTrue(result.reasons.any { it.contains("clipId") })
     }
 
+    // ── CustomAudio rules ───────────────────────────────────────────────
+
+    @Test
+    fun `blank CustomAudio uri is invalid`() {
+        routine = routine.copy(
+            steps = listOf(RoutineStep.CustomAudio(uri = "")),
+        )
+        val result = RoutineValidator.validate(routine) as ValidationResult.Invalid
+        assertTrue(result.reasons.any { it.contains("uri") })
+    }
+
+    @Test
+    fun `non-blank CustomAudio uri is valid`() {
+        routine = routine.copy(
+            steps = listOf(RoutineStep.CustomAudio(uri = "content://audio/1")),
+        )
+        assertTrue(RoutineValidator.validate(routine) is ValidationResult.Valid)
+    }
+
+    @Test
+    fun `CustomAudio does not count toward total duration`() {
+        routine = routine.copy(
+            steps = listOf(
+                RoutineStep.CustomAudio(uri = "content://audio/1"),
+                RoutineStep.Breathing(durationSec = 30),
+            ),
+        )
+        assertEquals(30, routine.totalDurationSec())
+    }
+
     // ── Collects ALL failures ───────────────────────────────────────────
 
     @Test
