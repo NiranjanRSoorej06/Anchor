@@ -1,7 +1,5 @@
 package com.anchor.devtools
 
-import android.content.Context
-import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,10 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.anchor.core.haptics.DebugHapticEngine
 import com.anchor.core.haptics.HapticEngine
 import com.anchor.core.haptics.HapticPatterns
-import com.anchor.core.haptics.SystemHapticEngine
+import com.anchor.core.haptics.createHapticEngine
 import com.anchor.domain.session.CheckInResponse
 import com.anchor.domain.session.SessionState
 import com.anchor.domain.session.SessionStateMachine
@@ -63,7 +60,7 @@ import com.anchor.domain.session.TransitionResult
 @Composable
 fun SessionStateTestScreen() {
     val context = LocalContext.current
-    val hapticEngine = remember { buildHapticEngineForThisDevice(context) }
+    val hapticEngine = remember { createHapticEngine(context) }
     val machine = remember { SessionStateMachine() }
     val state by machine.state.collectAsState()
     var lastRejection by remember { mutableStateOf<String?>(null) }
@@ -192,22 +189,4 @@ private fun DevButton(label: String, onClick: () -> Unit) {
     Button(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
         Text(label)
     }
-}
-
-/**
- * Duplicated from DevHapticTestScreen.kt on purpose: M4 preserves M1-M3
- * files untouched rather than extracting a shared helper. See the M4
- * report for why.
- */
-private fun buildHapticEngineForThisDevice(context: Context): HapticEngine {
-    val looksLikeEmulator = Build.FINGERPRINT.startsWith("generic") ||
-        Build.FINGERPRINT.startsWith("unknown") ||
-        Build.MODEL.contains("Emulator") ||
-        Build.MODEL.contains("Android SDK built for") ||
-        Build.MANUFACTURER.contains("Genymotion") ||
-        Build.HARDWARE.contains("goldfish") ||
-        Build.HARDWARE.contains("ranchu") ||
-        Build.PRODUCT.contains("sdk")
-
-    return if (looksLikeEmulator) DebugHapticEngine() else SystemHapticEngine(context)
 }

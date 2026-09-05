@@ -1,7 +1,5 @@
 package com.anchor.devtools
 
-import android.content.Context
-import android.os.Build
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -36,10 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.anchor.core.haptics.DebugHapticEngine
-import com.anchor.core.haptics.HapticEngine
 import com.anchor.core.haptics.HapticPattern
 import com.anchor.core.haptics.HapticPatterns
-import com.anchor.core.haptics.SystemHapticEngine
+import com.anchor.core.haptics.createHapticEngine
 
 /**
  * HAPTIC LAB — a developer/testing playground for [HapticEngine] and the
@@ -64,7 +61,7 @@ import com.anchor.core.haptics.SystemHapticEngine
 @Composable
 fun DevHapticTestScreen() {
     val context = LocalContext.current
-    val engine = remember { buildEngineForThisDevice(context) }
+    val engine = remember { createHapticEngine(context) }
     var intensity by remember { mutableFloatStateOf(1f) }
     var currentPattern by remember { mutableStateOf<HapticPattern?>(null) }
 
@@ -182,23 +179,4 @@ private fun PatternButton(label: String, pattern: HapticPattern, onPlay: (Haptic
     ) {
         Text(label)
     }
-}
-
-/**
- * Heuristic emulator detection so this screen shows a felt vibration on a
- * real Samsung and a visible pulse on the AVD, without needing a manual
- * switch. This heuristic is dev-tooling only — production trigger code
- * (a later module) will not need it, since it already knows its own context.
- */
-private fun buildEngineForThisDevice(context: Context): HapticEngine {
-    val looksLikeEmulator = Build.FINGERPRINT.startsWith("generic") ||
-        Build.FINGERPRINT.startsWith("unknown") ||
-        Build.MODEL.contains("Emulator") ||
-        Build.MODEL.contains("Android SDK built for") ||
-        Build.MANUFACTURER.contains("Genymotion") ||
-        Build.HARDWARE.contains("goldfish") ||
-        Build.HARDWARE.contains("ranchu") ||
-        Build.PRODUCT.contains("sdk")
-
-    return if (looksLikeEmulator) DebugHapticEngine() else SystemHapticEngine(context)
 }

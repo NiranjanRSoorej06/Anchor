@@ -15,12 +15,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import com.anchor.core.haptics.createHapticEngine
 import com.anchor.devtools.DevHapticTestScreen
 import com.anchor.devtools.SessionStateTestScreen
 import com.anchor.devtools.ThemeSwitcher
+import com.anchor.domain.session.SessionStateMachine
 import com.anchor.ui.HomeScreen
+import com.anchor.ui.session.SessionScreen
 import com.anchor.ui.theme.AnchorTheme
 import com.anchor.ui.theme.ThemeVariant
+
+private enum class Screen { HOME, SESSION }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +34,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             var themeVariant by remember { mutableStateOf(ThemeVariant.NORD) }
+            var screen by remember { mutableStateOf(Screen.HOME) }
+
+            val context = LocalContext.current
+            val machine = remember { SessionStateMachine() }
+            val hapticEngine = remember { createHapticEngine(context) }
 
             AnchorTheme(variant = themeVariant) {
                 Column(
@@ -40,12 +51,24 @@ class MainActivity : ComponentActivity() {
                     ThemeSwitcher(selected = themeVariant, onSelect = { themeVariant = it })
 
                     Box(modifier = Modifier.weight(1f)) {
-                        // TEMPORARY (Module 4 manual verification) — swap back to
-                        // DevHapticTestScreen()/HomeScreen() and delete the devtools
-                        // package once the real Anchor session screen lands.
-                        SessionStateTestScreen()
+                        // The real app: ANCHOR NOW -> the actual session flow.
+                        when (screen) {
+                            Screen.HOME -> HomeScreen(
+                                machine = machine,
+                                hapticEngine = hapticEngine,
+                                onEnterSession = { screen = Screen.SESSION }
+                            )
+                            Screen.SESSION -> SessionScreen(
+                                machine = machine,
+                                hapticEngine = hapticEngine,
+                                onExitToHome = { screen = Screen.HOME }
+                            )
+                        }
+
+                        // Dev tooling — still reachable by swapping the line above
+                        // for manual verification. Not part of the real app flow.
+                        // SessionStateTestScreen()
                         // DevHapticTestScreen()
-                        // HomeScreen()
                     }
                 }
             }
