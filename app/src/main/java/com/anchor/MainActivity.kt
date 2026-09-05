@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -21,6 +22,9 @@ import androidx.compose.ui.platform.LocalContext
 import com.anchor.core.audio.createAudioEngine
 import com.anchor.core.audio.createCalmingPlayer
 import com.anchor.core.haptics.createHapticEngine
+import com.anchor.core.data.InMemoryGoalStore
+import com.anchor.core.data.InMemoryJournalStore
+import com.anchor.core.data.InMemoryMedStore
 import com.anchor.devtools.DevHapticTestScreen
 import com.anchor.ui.support.FindSupportScreen
 import com.anchor.devtools.RoutingLabScreen
@@ -39,6 +43,7 @@ import com.anchor.ui.tools.TriggerLogScreen
 import com.anchor.ui.tools.JournalScreen
 import com.anchor.ui.tools.MedsScreen
 import com.anchor.ui.tools.GoalsScreen
+import com.anchor.ui.tools.TriggerEntry
 
 private enum class Screen { HOME, SESSION, GROUNDING, SUPPORT, TOOLS, COMPANION, MANAGE_SYMPTOMS }
 
@@ -79,6 +84,11 @@ class MainActivity : ComponentActivity() {
             val hapticEngine = remember { com.anchor.core.haptics.createHapticEngine(context) }
             val audioEngine = remember { createAudioEngine(context) }
             val calmingPlayer = remember { createCalmingPlayer(context) }
+            val medStore = remember { InMemoryMedStore() }
+            val goalStore = remember { InMemoryGoalStore() }
+            val journalStore = remember { InMemoryJournalStore() }
+            val triggerHistory = remember { mutableStateListOf<TriggerEntry>() }
+            var triggerNextId by remember { mutableStateOf(1L) }
 
             AnchorTheme(variant = themeVariant) {
                 Column(
@@ -129,16 +139,22 @@ class MainActivity : ComponentActivity() {
                                     onBack = { launchScreen.value = Screen.HOME }
                                 )
                                 ToolsSub.TRIGGER_LOG -> TriggerLogScreen(
-                                    onBack = { toolsSub = ToolsSub.HUB }
+                                    onBack = { toolsSub = ToolsSub.HUB },
+                                    history = triggerHistory,
+                                    nextId = triggerNextId,
+                                    onNextIdChange = { triggerNextId = it }
                                 )
                                 ToolsSub.JOURNAL -> JournalScreen(
-                                    onBack = { toolsSub = ToolsSub.HUB }
+                                    onBack = { toolsSub = ToolsSub.HUB },
+                                    store = journalStore
                                 )
                                 ToolsSub.MEDICINE -> MedsScreen(
-                                    onBack = { toolsSub = ToolsSub.HUB }
+                                    onBack = { toolsSub = ToolsSub.HUB },
+                                    store = medStore
                                 )
                                 ToolsSub.GOALS -> GoalsScreen(
-                                    onBack = { toolsSub = ToolsSub.HUB }
+                                    onBack = { toolsSub = ToolsSub.HUB },
+                                    store = goalStore
                                 )
                             }
                             Screen.COMPANION -> com.anchor.ui.companion.CompanionModeScreen(

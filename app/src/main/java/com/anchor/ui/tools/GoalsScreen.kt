@@ -48,8 +48,7 @@ import com.anchor.ui.theme.AnchorColors
 import kotlinx.coroutines.launch
 
 @Composable
-fun GoalsScreen(onBack: () -> Unit) {
-    val store = remember { InMemoryGoalStore() }
+fun GoalsScreen(onBack: () -> Unit, store: InMemoryGoalStore) {
     var goals by remember { mutableStateOf(listOf<Goal>()) }
     var showAddDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()

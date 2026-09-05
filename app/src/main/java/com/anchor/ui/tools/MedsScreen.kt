@@ -46,8 +46,7 @@ import com.anchor.domain.meds.MedTime
 import kotlinx.coroutines.launch
 
 @Composable
-fun MedsScreen(onBack: () -> Unit) {
-    val store = remember { InMemoryMedStore() }
+fun MedsScreen(onBack: () -> Unit, store: InMemoryMedStore) {
     var reminders by remember { mutableStateOf(listOf<MedReminder>()) }
     var showAddDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()

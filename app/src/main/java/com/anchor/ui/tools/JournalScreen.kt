@@ -47,8 +47,7 @@ import java.util.Locale
 private const val MAX_TEXT_LENGTH = 500
 
 @Composable
-fun JournalScreen(onBack: () -> Unit) {
-    val store = remember { InMemoryJournalStore() }
+fun JournalScreen(onBack: () -> Unit, store: InMemoryJournalStore) {
     var entries by remember { mutableStateOf(listOf<JournalEntry>()) }
     var showAddDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()

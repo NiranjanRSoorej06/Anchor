@@ -34,7 +34,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,7 +65,7 @@ private val IncidentKind.civilianLabel: String
 
 // ── In-memory data model ─────────────────────────────────────────────────
 
-private data class TriggerEntry(
+internal data class TriggerEntry(
     val id: Long,
     val trigger: String?,
     val distress: Int?,       // 1-5 or null if skipped
@@ -87,29 +86,31 @@ private fun distressColor(level: Int) = when {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun TriggerLogScreen(onBack: () -> Unit) {
+fun TriggerLogScreen(
+    onBack: () -> Unit,
+    history: MutableList<TriggerEntry>,
+    nextId: Long,
+    onNextIdChange: (Long) -> Unit
+) {
     // Step state
     var step by remember { mutableIntStateOf(1) } // 1=trigger, 2=distress, 3=note
     var selectedTrigger by remember { mutableStateOf<String?>(null) }
     var distress by remember { mutableIntStateOf(0) } // 0 = not selected
     var note by remember { mutableStateOf("") }
 
-    // History
-    val history = remember { mutableStateListOf<TriggerEntry>() }
-    var nextId by remember { mutableStateOf(1L) }
-
     val dateFormat = remember { SimpleDateFormat("MMM d, h:mm a", Locale.getDefault()) }
 
     fun saveAndReset() {
         history.add(
             TriggerEntry(
-                id = nextId++,
+                id = nextId,
                 trigger = selectedTrigger,
                 distress = if (distress > 0) distress else null,
                 note = note.trim(),
                 timestampMillis = System.currentTimeMillis()
             )
         )
+        onNextIdChange(nextId + 1)
         selectedTrigger = null
         distress = 0
         note = ""
