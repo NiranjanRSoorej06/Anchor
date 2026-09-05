@@ -31,6 +31,16 @@ Flow:
 Learning after: Better/Same/Worse only (1 tap) → `domain/personalization/PersonalizationScorer` → insight card ("X helped 4 out of 5 times", MIN_SESSIONS=3). No scales in acute path, no re-quizzing.
 Full flow spec: S0–S12 in `docs/onboarding-research.md` §5 — every screen skippable, safety plan defers to Settings, paths from 15s bare to 4–5 min full. PCL-5 presented as 4 cluster screens with break + halfway safeguard, score internal only.
 
+## Post-SOS check-in (locked: model built, notification + UI on SDK machine)
+One gentle notification ~10–15 min after SOS (AlarmManager; discreet text
+"Anchor: how are you doing?" — never clinical wording on a lock screen).
+Opens optional 3-tap flow: trigger chips + distress 1–5 + ≤280-char note
+(`domain/followup`, 15 tests), each independently skippable, once per
+episode, dismiss = never re-asked. Lands in Episode → therapist export.
+Support directory (`domain/support`: 9 entries + `forRegion()`, 18 tests)
+backs the Find Support screen. This episode-linked check-in is the ONLY
+allowed re-prompt — scheduled/repeated assessments stay banned.
+
 ## Custom routines (locked: model built, UI later)
 The USP: user builds calming routines (own audio/voice clips, haptics,
 breathing, pauses) and binds one to the panic button. Spec (`domain/routine/`,
