@@ -8,6 +8,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -41,6 +43,7 @@ import com.anchor.core.haptics.HapticPatterns
 import com.anchor.domain.session.CheckInResponse
 import com.anchor.domain.session.SessionState
 import com.anchor.domain.session.SessionStateMachine
+import com.anchor.ui.theme.AnchorColors
 import kotlinx.coroutines.delay
 
 /** How long the EASING transition holds before moving on to CHECK_IN. */
@@ -215,12 +218,12 @@ private fun ActivityStage(
             contentAlignment = Alignment.Center,
             modifier = Modifier.size(230.dp)
         ) {
-            // Outer translucent pulse aura
+            // Outer tint aura
             Box(
                 modifier = Modifier
                     .size(190.dp * scale)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                    .background(AnchorColors.current.tint)
             )
             // Inner solid anchor circle
             Box(
@@ -267,8 +270,13 @@ private fun CheckInStage(onBetter: () -> Unit, onSame: () -> Unit, onWorse: () -
             textAlign = TextAlign.Center
         )
         Button(modifier = Modifier.fillMaxWidth(), onClick = onBetter) { Text("Better") }
-        Button(modifier = Modifier.fillMaxWidth(), onClick = onSame) { Text("About the same") }
-        Button(modifier = Modifier.fillMaxWidth(), onClick = onWorse) { Text("Worse") }
+        OutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = onSame) { Text("About the same") }
+        OutlinedButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onWorse,
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+        ) { Text("Worse") }
     }
 }
 

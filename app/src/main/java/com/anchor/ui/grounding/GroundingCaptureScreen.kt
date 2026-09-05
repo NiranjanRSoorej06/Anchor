@@ -3,10 +3,13 @@ package com.anchor.ui.grounding
 import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -17,10 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.anchor.core.audio.AudioDeliveryEngine
 import com.anchor.core.audio.DebugAudioEngine
 import com.anchor.domain.grounding.GroundingScript
 import com.anchor.domain.grounding.GroundingScriptBuilder
+import com.anchor.ui.theme.DmMonoFamily
 import kotlinx.coroutines.delay
 
 /**
@@ -88,12 +93,25 @@ private fun ScriptStage(script: GroundingScript, onDone: () -> Unit) {
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center
         )
-        script.sentences.forEach { sentence ->
-            Text(
-                sentence,
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
-            )
+        script.sentences.forEachIndexed { index, sentence ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${index + 1}",
+                        fontFamily = DmMonoFamily,
+                        fontSize = 22.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(sentence, style = MaterialTheme.typography.bodyLarge)
+                }
+            }
         }
         Button(
             modifier = Modifier

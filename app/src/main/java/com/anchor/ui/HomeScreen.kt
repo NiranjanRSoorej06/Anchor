@@ -12,14 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -92,9 +93,9 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
             ) {
-                TextButton(onClick = onFindSupport) { Text("Find Support") }
-                TextButton(onClick = onTools) { Text("Tools") }
-                TextButton(onClick = onCompanionMode) { Text("Companion") }
+                OutlinedButton(onClick = onFindSupport) { Text("Find Support") }
+                OutlinedButton(onClick = onTools) { Text("Tools") }
+                OutlinedButton(onClick = onCompanionMode) { Text("Companion") }
             }
 
             Text(
@@ -112,6 +113,12 @@ private fun AnchorNowButton(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(236.dp)
+            .shadow(
+                elevation = 20.dp,
+                shape = CircleShape,
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+            )
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.primary)
             .clickable(onClick = onClick),

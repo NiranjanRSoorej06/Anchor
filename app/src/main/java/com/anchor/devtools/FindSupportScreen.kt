@@ -1,12 +1,14 @@
 package com.anchor.devtools
 
 import android.content.Intent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -16,10 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import com.anchor.domain.support.MapsQueries
 import com.anchor.domain.support.SupportCategory
 import com.anchor.domain.support.SupportDirectory
+import com.anchor.ui.theme.DmMonoFamily
 
 /**
  * FIND SUPPORT (real product screen, not a dev harness) — the R6/R7/R8
@@ -66,7 +70,7 @@ fun FindSupportScreen() {
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            Text("Crisis helplines — tap to call", style = MaterialTheme.typography.titleSmall)
+            SectionLabel("Crisis helplines — tap to call")
             helplines.forEach { entry ->
                 SupportButton(
                     label = "${entry.name}\n${entry.phoneNumber ?: ""} · ${entry.hours}",
@@ -76,7 +80,7 @@ fun FindSupportScreen() {
 
             HorizontalDivider(Modifier.padding(vertical = 4.dp))
 
-            Text("Clinics near you (online)", style = MaterialTheme.typography.titleSmall)
+            SectionLabel("Clinics near you (online)")
             SupportButton("Mental health clinics near me") {
                 openUri(MapsQueries.uriFor(MapsQueries.CLINIC))
             }
@@ -89,14 +93,14 @@ fun FindSupportScreen() {
 
             HorizontalDivider(Modifier.padding(vertical = 4.dp))
 
-            Text("Ongoing support (online)", style = MaterialTheme.typography.titleSmall)
+            SectionLabel("Ongoing support (online)")
             directories.forEach { entry ->
                 SupportButton(entry.name) { entry.url?.let { openUri(it) } }
             }
 
             HorizontalDivider(Modifier.padding(vertical = 4.dp))
 
-            Text("Peer communities (online)", style = MaterialTheme.typography.titleSmall)
+            SectionLabel("Peer communities (online)")
             Text(
                 "Peer-run — not professional advice. Browse when stable.",
                 style = MaterialTheme.typography.bodySmall
@@ -112,7 +116,30 @@ fun FindSupportScreen() {
 
 @Composable
 private fun SupportButton(label: String, onClick: () -> Unit) {
-    Button(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
-        Text(label)
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(16.dp)
+        )
     }
+}
+
+/** Uppercase-style mono meta label, matching the design canvas's section headers. */
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall.copy(
+            fontFamily = DmMonoFamily,
+            fontSize = 12.sp,
+            letterSpacing = 1.2.sp
+        ),
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
 }
