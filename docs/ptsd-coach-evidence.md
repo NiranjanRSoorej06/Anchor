@@ -45,6 +45,64 @@ is not garnish: 80% treatment gap + zero localized PTSD apps in 1.4B
 people is distribution no one else owns — but it is distribution, and the
 product wedge above must stand on its own.
 
+## Citable lines for the deck (Bröcker 2023, exact quotes)
+
+Frame: the paper proves the gap, not our superiority. Claim "built around
+documented gaps," never "proven better." Each card: quote → paper § → safe line.
+
+1. Effectiveness gap: *"the overall greater decrease in symptom severity in the
+   intervention group compared to the comparison group (pooled effect size) was
+   not significant, SMD = −0.19 (95% CI −0.41 to −0.03, p = .09)"* (§3.2.4).
+   Say: "2023 meta-analysis of six RCTs: symptom effect non-significant."
+   Don't say: "PTSD Coach doesn't work."
+2. Engagement cliff: *"regular use of the MA decreased from 61.1% after the
+   initial download, to 46% at one month, 28% at 3 months and 10.6% at
+   approximately 12 months"* + *"declining from 87% the first day post download
+   to 10% and 0.69% one month and one year"* (§3.2.1, Owen 2015 + Hallenbeck
+   2022). Say: "Retention falls below 11% within a year — passive libraries
+   lose people; we trigger at the moment of need."
+3. Support is the active ingredient: *"studies that evaluated a supported
+   'PTSD Coach' intervention generally seemed to have less attrition, higher
+   engagement, and increased perceived helpfulness and satisfaction"* (§4) +
+   *"100% (of qualitative interviewees) reported good to excellent satisfaction
+   with clinician-supported CS-PTSD Coach"* (Table 2, Possemato 2016/2017).
+   Say: "Their own conclusion: supported delivery wins — our companion alert
+   is that support layer, automated." Don't equate automation with a clinician.
+4. LMIC gap: *"most (n = 11; 68.75%) were conducted in high-income countries…
+   Three studies (18.75%) were conducted in low-middle-income countries"*
+   (§3.1.1) + *"treatment-seeking behaviour (53.5%) in HICs compared to LMICs
+   (22.8%)"* (§4, Koenen 2017). Say: "Fewer than 1 in 5 studies where
+   treatment-seeking is under 23%." That's the India slide.
+5. Users asked for our features: *"15% offered suggestions for MA improvement
+   (i.e. enable social networking among users, create device-specific versions,
+   provide a journalling feature…)"* (Table 2, Owen 2015). Say: "Their users
+   requested journaling — we shipped it."
+6. Customization + human element: *"the barrier of the inability to customise
+   some features of the MA"* + *"most PCO participants noted the lack of a
+   human element as a barrier"* (§3.2.3). Maps to editable anchor + companion.
+7. Strongest safety line: *"For one user, the technical difficulties resulted
+   in increased psychological distress"* (§3.2.3, Owen 2015). Say: "A review
+   records an app harming a user through glitches — hence offline-first and
+   deterministic." Use sparingly.
+8. Android-first, citably: *"Android users reporting significantly more
+   technical problems than iOS users"* (§3.2.3) + *"50.9% of iOS users
+   perceived MA as helpful [vs] 20.4% Android users"* (Table 2, Owen 2015).
+   Say: "The evidence skews iOS; Android reports more problems, less benefit —
+   so we build Android-first."
+9. Target the moving cluster: Tiet 2019 *"significant decrease in the
+   re-experiencing subscale"* (d = .71); authors: subscale analysis *"can
+   inform which PTSD symptom clusters are more sensitive… and possibly aid in
+   either a more targeted intervention approach"* (§4). Say: "We target the
+   cluster with the only significant subscale signal." Not: "we treat
+   flashbacks."
+10. Privacy precedent + demographics: *"PTSD Coach does not require data post
+    download nor collects identifiable data during usage"* (§1, Kuhn 2018) +
+    *"Females were over-represented (607/960; 63.23%)"* (§3.1.1) despite a
+    veteran-origin app. Backs offline story + civilian-first language.
+
+Master citation (deck footer): Bröcker, Suliman, Olff & Seedat (2023),
+*European Journal of Psychotraumatology*, 14(2), 2209469. PMC10215014.
+
 ## Sources
 - Kuhn 2014: doi:10.7205/milmed-d-13-00271 · Miner 2016: doi:10.1037/tra0000092
 - Kuhn 2017: doi:10.1037/ccp0000163 · Possemato 2016: doi:10.1016/j.genhosppsych.2015.09.005
