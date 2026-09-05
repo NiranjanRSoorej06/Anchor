@@ -39,6 +39,7 @@ import com.anchor.ui.theme.ThemeVariant
 import com.anchor.ui.tools.GoalsScreen
 import com.anchor.ui.tools.JournalScreen
 import com.anchor.ui.tools.MedTrackerScreen
+import com.anchor.ui.tools.SleepScreen
 import com.anchor.ui.tools.ToolsHubScreen
 import com.anchor.ui.tools.TrackProgressScreen
 import com.anchor.ui.tools.TriggerLogScreen
@@ -46,7 +47,7 @@ import com.anchor.ui.tools.TriggerLogScreen
 private enum class Screen {
     HOME, SESSION, GROUNDING,
     MANAGE_SYMPTOMS, TOOLS_HOME, EDIT_ANCHOR,
-    TOOLS_TRIGGER_LOG, TOOLS_MEDS, TOOLS_JOURNAL, TOOLS_GOALS, TOOLS_PROGRESS,
+    TOOLS_TRIGGER_LOG, TOOLS_MEDS, TOOLS_JOURNAL, TOOLS_GOALS, TOOLS_SLEEP, TOOLS_PROGRESS,
     GET_SUPPORT, SUPPORT_CRISIS, SUPPORT_PROFESSIONAL, SUPPORT_LOCATOR, SUPPORT_COMMUNITIES,
     COMPANION, SETTINGS, SAFETY_PHRASES
 }
@@ -137,12 +138,18 @@ class MainActivity : ComponentActivity() {
                                 onMedTracker = { launchScreen.value = Screen.TOOLS_MEDS },
                                 onJournal = { launchScreen.value = Screen.TOOLS_JOURNAL },
                                 onGoals = { launchScreen.value = Screen.TOOLS_GOALS },
+                                onSleep = { launchScreen.value = Screen.TOOLS_SLEEP },
                                 onTrackProgress = { launchScreen.value = Screen.TOOLS_PROGRESS }
                             )
                             Screen.TOOLS_TRIGGER_LOG -> TriggerLogScreen(onBack = { launchScreen.value = Screen.TOOLS_HOME })
                             Screen.TOOLS_MEDS -> MedTrackerScreen(onBack = { launchScreen.value = Screen.TOOLS_HOME })
                             Screen.TOOLS_JOURNAL -> JournalScreen(onBack = { launchScreen.value = Screen.TOOLS_HOME })
                             Screen.TOOLS_GOALS -> GoalsScreen(onBack = { launchScreen.value = Screen.TOOLS_HOME })
+                            Screen.TOOLS_SLEEP -> SleepScreen(
+                                audioEngine = audioEngine,
+                                onBack = { launchScreen.value = Screen.TOOLS_HOME },
+                                onNeedProfessionalHelp = { launchScreen.value = Screen.GET_SUPPORT }
+                            )
                             Screen.TOOLS_PROGRESS -> TrackProgressScreen(onBack = { launchScreen.value = Screen.TOOLS_HOME })
                             Screen.EDIT_ANCHOR -> EditAnchorScreen(
                                 onBack = { launchScreen.value = Screen.HOME }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
@@ -40,6 +41,7 @@ fun ToolsHubScreen(
     onMedTracker: () -> Unit,
     onJournal: () -> Unit,
     onGoals: () -> Unit,
+    onSleep: () -> Unit,
     onTrackProgress: () -> Unit
 ) {
     Scaffold(
@@ -85,6 +87,12 @@ fun ToolsHubScreen(
                 subtitle = "Small weekly practices, tracked over time",
                 icon = Icons.Filled.DateRange,
                 onClick = onGoals
+            )
+            SectionCard(
+                label = "Sleep",
+                subtitle = "Sleep diary, trends, and a wind-down routine",
+                icon = Icons.Filled.Bedtime,
+                onClick = onSleep
             )
             SectionCard(
                 label = "Track Progress",
