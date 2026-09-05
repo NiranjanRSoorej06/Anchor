@@ -55,6 +55,15 @@ E004 paced breathing → check-in — that the user can edit (reorder, toggle,
 duration via `RoutineValidator`; voice-recording builder is Tier1, not
 demo). Answers "allow edits to it": yes, lite editor, no audio recording
 for the demo.
+Full SOS flow (locked): SOS → default breathing sequence → check-in →
+consent gate ("comfortable talking about it?") → journal/note (≤280
+chars, skippable) → incident kind picker (`domain/triage`: 9
+situation-language kinds → CurrentState + starter E-ids, 22 tests; never
+trauma-origin/diagnosis language) → router recommendations → Get Support
+→ Track Progress (episodes, goals, med reminders tracking-only with no
+dosage fields, PCL-5 once). Meds: `domain/meds` (reminders + taken log
+only, never advice; 12 tests). Goals: `domain/goals` (behavioral, weekly
+progress; 20 tests).
 
 ## Routing + catalog (locked: models built, wiring later)
 `domain/content`: 9 pre-authored interventions E001–E009 per plan.md §8.3
