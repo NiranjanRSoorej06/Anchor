@@ -220,9 +220,9 @@ fun SessionScreen(
         }
     }
 
-    // Haptic breathing loop during BREATHING phase
+    // Haptic breathing loop during active grounding session (phases 1, 2, and 3)
     LaunchedEffect(currentPhase, isCriticalMode) {
-        if (!isCriticalMode && currentPhase == SprintPhase.BREATHING) {
+        if (!isCriticalMode && (currentPhase == SprintPhase.BREATHING || currentPhase == SprintPhase.CONDITION_SELECTION || currentPhase == SprintPhase.SPECIALIZED_EXERCISE)) {
             while (true) {
                 hapticEngine.play(HapticPatterns.BREATHING_IN)
                 delay(4000)
@@ -231,7 +231,6 @@ fun SessionScreen(
             }
         } else {
             hapticEngine.stop()
-            audioEngine.stop()
         }
     }
 

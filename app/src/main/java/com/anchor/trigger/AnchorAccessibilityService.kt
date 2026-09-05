@@ -218,6 +218,13 @@ class AnchorAccessibilityService : AccessibilityService() {
 
     private fun triggerGrounding() {
         try {
+            val hapticEngine = com.anchor.core.haptics.createHapticEngine(this)
+            hapticEngine.play(com.anchor.core.haptics.HapticPatterns.BREATHING_IN)
+        } catch (e: Exception) {
+            Log.w(TAG, "Error playing instant trigger haptic: ${e.message}")
+        }
+
+        try {
             val audioEngine = com.anchor.core.audio.createAudioEngine(this)
             audioEngine.speakWhisper("You are in a safe place.")
         } catch (e: Exception) {
