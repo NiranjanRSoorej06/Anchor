@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.anchor.core.haptics.createHapticEngine
 import com.anchor.devtools.DevHapticTestScreen
+import com.anchor.devtools.FindSupportScreen
 import com.anchor.devtools.RoutingLabScreen
 import com.anchor.devtools.SessionStateTestScreen
 import com.anchor.devtools.ThemeSwitcher
@@ -89,6 +90,7 @@ class MainActivity : ComponentActivity() {
                         // SessionStateTestScreen()
                         // RoutingLabScreen()
                         // DevHapticTestScreen()
+                        // FindSupportScreen()
                     }
                 }
             }
