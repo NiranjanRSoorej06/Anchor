@@ -37,6 +37,13 @@ Breathing(1..120s) | SafetyPhrase(clipId) | Pause(1..120s); `Routine` max 8
 steps, max 180s total; `RoutineValidator` collects all failures. Playback UI,
 recording UI, and panic-button binding are NOT built yet — model only.
 
+## Routing + catalog (locked: models built, wiring later)
+`domain/content`: 9 pre-authored interventions E001–E009 per plan.md §8.3
+with `EvidenceStatus` + `toSafetyCandidate()` bridge (10 tests).
+`domain/routing`: `rank()` pipeline — drop alreadyTried → safety permits →
+successRate sort → SF7 fallback, never empty (14 tests). E009 brown noise
+flagged EVIDENCE_GAP, never primary. Wiring into session flow + UI NOT built yet.
+
 ## Session loop (M5 extended — HOLD on replace vs extend)
 `IDLE → ACTIVATING → GROUNDING → EASING → CHECK_IN → RECOVERY`, plus `ROUTING → INTERVENTION → SAFETY_STOP` (M5).
 OPEN: extend M5 incrementally vs rebuild full plan.md §15. No new states until team unblocks.
