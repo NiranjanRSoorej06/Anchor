@@ -36,10 +36,18 @@ fun GroundingCaptureScreen(
     audioEngine: AudioDeliveryEngine = DebugAudioEngine(),
     onDone: () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val script = remember { GroundingScriptBuilder.build(emptyList()) }
     val isWhisper = audioEngine.isWhisperModeActive()
 
     LaunchedEffect(Unit) {
+        // Dispatch direct background SMS to configured companions
+        try {
+            com.anchor.core.companion.CompanionNotificationEngine(context).notifyCompanion()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
         // Smoothly queue sensory grounding sentences after initial trigger safety phrase finishes
         delay(2200L)
         script.sentences.forEach { sentence ->

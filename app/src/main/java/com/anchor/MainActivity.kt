@@ -33,7 +33,7 @@ import com.anchor.ui.session.SessionScreen
 import com.anchor.ui.theme.AnchorTheme
 import com.anchor.ui.theme.ThemeVariant
 
-private enum class Screen { HOME, SESSION, GROUNDING, SUPPORT, TOOLS }
+private enum class Screen { HOME, SESSION, GROUNDING, SUPPORT, TOOLS, COMPANION }
 
 class MainActivity : ComponentActivity() {
 
@@ -82,7 +82,8 @@ class MainActivity : ComponentActivity() {
                                 audioEngine = audioEngine,
                                 onEnterSession = { launchScreen.value = Screen.SESSION },
                                 onFindSupport = { launchScreen.value = Screen.SUPPORT },
-                                onTools = { launchScreen.value = Screen.TOOLS }
+                                onTools = { launchScreen.value = Screen.TOOLS },
+                                onCompanionMode = { launchScreen.value = Screen.COMPANION }
                             )
                             Screen.SESSION -> SessionScreen(
                                 machine = machine,
@@ -96,6 +97,9 @@ class MainActivity : ComponentActivity() {
                             )
                             Screen.SUPPORT -> FindSupportScreen()
                             Screen.TOOLS -> ToolsLibraryScreen()
+                            Screen.COMPANION -> com.anchor.ui.companion.CompanionModeScreen(
+                                onBack = { launchScreen.value = Screen.HOME }
+                            )
                         }
 
                         // Dev tooling — still reachable by swapping the line above

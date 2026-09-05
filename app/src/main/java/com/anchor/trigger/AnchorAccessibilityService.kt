@@ -237,6 +237,13 @@ class AnchorAccessibilityService : AccessibilityService() {
             Log.w(TAG, "Error playing instant trigger whisper: ${e.message}")
         }
 
+        // Notify trusted companion if Companion Mode is enabled
+        try {
+            com.anchor.core.companion.CompanionNotificationEngine(this).notifyCompanion()
+        } catch (e: Exception) {
+            Log.w(TAG, "Error dispatching companion notification: ${e.message}")
+        }
+
         val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
         @Suppress("DEPRECATION")
         val screenLock = powerManager?.newWakeLock(

@@ -52,7 +52,8 @@ fun HomeScreen(
     audioEngine: AudioDeliveryEngine = DebugAudioEngine(),
     onEnterSession: () -> Unit,
     onFindSupport: () -> Unit,
-    onTools: () -> Unit
+    onTools: () -> Unit,
+    onCompanionMode: () -> Unit = {}
 ) {
     val isWhisper = audioEngine.isWhisperModeActive()
 
@@ -89,10 +90,11 @@ fun HomeScreen(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
             ) {
                 TextButton(onClick = onFindSupport) { Text("Find Support") }
                 TextButton(onClick = onTools) { Text("Tools") }
+                TextButton(onClick = onCompanionMode) { Text("Companion") }
             }
 
             Text(
