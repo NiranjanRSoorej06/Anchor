@@ -190,6 +190,7 @@ private fun ActivityStage(
     LaunchedEffect(Unit) {
         if (audioEngine.isWhisperModeActive()) {
             audioEngine.speakWhisper("You are in a safe place.")
+            delay(2000L)
         }
         while (true) {
             phaseText = "Breathe In…"

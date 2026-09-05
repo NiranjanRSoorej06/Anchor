@@ -22,7 +22,7 @@ interface AudioDeliveryEngine {
     fun isWhisperModeActive(): Boolean
 
     /** Speaks [text] in a soft female whisper if earbuds are connected; mutes completely if not. */
-    fun speakWhisper(text: String, queueMode: Int = TextToSpeech.QUEUE_ADD)
+    fun speakWhisper(text: String, queueMode: Int = TextToSpeech.QUEUE_FLUSH)
 
     /** Stops any ongoing speech immediately. */
     fun stop()
@@ -46,12 +46,14 @@ class WhisperAudioEngine(
 
     private var tts: TextToSpeech? = TextToSpeech(context.applicationContext, this)
     private var isTtsReady = false
-    private val pendingSpeechQueue = mutableListOf<Pair<String, Int>>()
+    private var pendingSpeechText: String? = null
+    private var pendingQueueMode: Int = TextToSpeech.QUEUE_FLUSH
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            val result = tts?.setLanguage(Locale.US)
-            if (result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED) {
+            try {
+                tts?.setLanguage(Locale.US)
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     val audioAttributes = AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -59,52 +61,24 @@ class WhisperAudioEngine(
                         .build()
                     tts?.setAudioAttributes(audioAttributes)
                 }
-                selectSoftFemaleVoice()
-                // Calibrate TTS for soft, soothing female whisper tone
-                tts?.setPitch(1.05f)
-                tts?.setSpeechRate(0.80f)
-                isTtsReady = true
-                Log.i(TAG, "Whisper TTS initialized cleanly with soft female voice")
 
-                // Flush any speech requested while TTS was initializing
-                if (isWhisperModeActive()) {
-                    synchronized(pendingSpeechQueue) {
-                        for ((text, mode) in pendingSpeechQueue) {
-                            speakInternal(text, mode)
-                        }
-                        pendingSpeechQueue.clear()
-                    }
+                // Calibrate TTS for soft, soothing female whisper tone (1.18f pitch for natural soft female voice)
+                tts?.setPitch(1.18f)
+                tts?.setSpeechRate(0.85f)
+                isTtsReady = true
+                Log.i(TAG, "Whisper TTS initialized instantly with soft female voice")
+
+                // Immediately speak any phrase requested while TTS was starting
+                val textToSpeak = pendingSpeechText
+                if (textToSpeak != null && isWhisperModeActive()) {
+                    speakInternal(textToSpeak, pendingQueueMode)
+                    pendingSpeechText = null
                 }
-            } else {
-                Log.w(TAG, "US English TTS language missing or unsupported")
+            } catch (e: Exception) {
+                Log.w(TAG, "Error configuring TTS: ${e.message}")
             }
         } else {
             Log.w(TAG, "TTS initialization failed with status $status")
-        }
-    }
-
-    private fun selectSoftFemaleVoice() {
-        val ttsEngine = tts ?: return
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                val voices = ttsEngine.voices
-                if (!voices.isNullOrEmpty()) {
-                    val femaleVoice = voices.find { voice ->
-                        val name = voice.name.lowercase()
-                        voice.locale.language == Locale.ENGLISH.language &&
-                            (name.contains("female") || name.contains("fem") || name.contains("sfg") || name.contains("wmn") || name.contains("woman") || name.contains("en-us-x-sfg") || name.contains("en-us-x-tpf"))
-                    } ?: voices.find { voice ->
-                        voice.locale.language == Locale.ENGLISH.language && !voice.isNetworkConnectionRequired
-                    }
-
-                    if (femaleVoice != null) {
-                        ttsEngine.voice = femaleVoice
-                        Log.i(TAG, "Selected soft female voice: ${femaleVoice.name}")
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "Error selecting soft female voice: ${e.message}")
         }
     }
 
@@ -121,10 +95,9 @@ class WhisperAudioEngine(
         }
 
         if (!isTtsReady || tts == null) {
-            Log.d(TAG, "TTS initializing; queuing speech: $text")
-            synchronized(pendingSpeechQueue) {
-                pendingSpeechQueue.add(text to queueMode)
-            }
+            Log.d(TAG, "TTS initializing; queuing instant speech: $text")
+            pendingSpeechText = text
+            pendingQueueMode = queueMode
             return
         }
 
@@ -146,9 +119,7 @@ class WhisperAudioEngine(
 
     override fun stop() {
         try {
-            synchronized(pendingSpeechQueue) {
-                pendingSpeechQueue.clear()
-            }
+            pendingSpeechText = null
             if (isTtsReady) {
                 tts?.stop()
             }
