@@ -1,0 +1,51 @@
+name: Update technical feature documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "app/src/main/java/com/anchor/core/**"
+      - "app/src/main/java/com/anchor/devtools/**"
+      - "tools/generate_technical_features.py"
+      - "docs/technical-features.md"
+      - ".github/workflows/update-technical-features.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Regenerate marked feature sections
+        run: python tools/generate_technical_features.py
+
+      - name: Detect documentation changes
+        id: diff
+        shell: bash
+        run: |
+          if git diff --quiet -- docs/technical-features.md; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push documentation
+        if: steps.diff.outputs.changed == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/technical-features.md
+          git commit -m "docs: update technical feature inventory [skip ci]"
+          git push
