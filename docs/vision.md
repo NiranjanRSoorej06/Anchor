@@ -106,6 +106,16 @@ fact: haptics proven, vagal regulation, BLS app, personalization
 improves outcomes, voice reduces anxiety. Full brief:
 `docs/exercise-evidence.md`.
 
+## Journaling (locked: structured built, photo Tier1, narrative banned)
+Built: Episode + SessionOutcome + insight records WHAT HELPED, never what
+happened. Tier1: voluntary trigger-photo log — user taps, CameraX captures
+to app-private storage, timestamped + linked to episode + optional short
+note; blurred thumbnails, no auto-review/slideshow, export-to-therapist
+framing (photos can re-trigger on re-view). Banned unless the team
+explicitly overrides: free-text trauma narrative fields (plan.md acceptance
+criterion), passive/automatic capture of any kind (photo or audio),
+anything captured leaving the device.
+
 ## Killed / deferred
 - KILL for demo: Django/Channels backend, Deepgram+Groq+ElevenLabs chain, ambient upload, passive EMA, trauma-type diagnosis cards, Ed25519.
 - STRETCH order: volume clutch first (docs/clutch-research.md verdict — Nugon real but niche, Dictate claim debunked, needs pre-configured Pixel/Samsung, 5.5–9.5d; Tier1 spike, never demo-default) → on-device loudness whisper → brown noise (comfort-labeled) → Purr/Marble.
