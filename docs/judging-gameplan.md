@@ -28,7 +28,7 @@ with the 5-scale doubled; if /5, our story still maxes it.
 3. **One partnership email thread** (+1 Market): write to Tele MANAS/NIMHANS/
    Vandrevala/iCall about directory listing + pilot; the thread itself is
    the artifact, even pre-reply.
-4. **Arduino UNO Q (+2 bonus) — conditional**, see below.
+4. ~~Arduino UNO Q (+2 bonus)~~ — CUT, no hardware available.
 
 ## Arduino UNO Q verdict: CUT (team decision — no hardware available)
 
