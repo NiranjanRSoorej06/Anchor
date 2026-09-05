@@ -1,9 +1,5 @@
 package com.anchor.ui
 
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,11 +13,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,27 +46,6 @@ fun HomeScreen(
     hapticEngine: HapticEngine,
     onEnterSession: () -> Unit
 ) {
-    val context = LocalContext.current
-    val requestCameraPermission = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) {
-        // Result ignored either way: the grounding feature already has a
-        // no-permission fallback script (see GroundingCaptureScreen), so
-        // there's nothing more to do here whether the user grants or denies.
-    }
-
-    // Requested once, proactively, from Home — a widget/volume-button tap
-    // has no UI of its own to show a permission dialog from.
-    LaunchedEffect(Unit) {
-        val alreadyGranted = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED
-        if (!alreadyGranted) {
-            requestCameraPermission.launch(Manifest.permission.CAMERA)
-        }
-    }
-
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
