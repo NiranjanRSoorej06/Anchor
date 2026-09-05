@@ -8,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -83,7 +82,7 @@ fun CompanionModeScreen(
         ) {
             // Explanatory card
             Card(
-                shape = RoundedCornerShape(16.dp),
+                shape = MaterialTheme.shapes.medium,
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                 ),
@@ -119,7 +118,7 @@ fun CompanionModeScreen(
 
             // Enable Toggle Card
             Card(
-                shape = RoundedCornerShape(16.dp),
+                shape = MaterialTheme.shapes.medium,
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
@@ -160,7 +159,7 @@ fun CompanionModeScreen(
             // Permission Warning Banner if missing
             if (!hasSmsPermission) {
                 Card(
-                    shape = RoundedCornerShape(12.dp),
+                    shape = MaterialTheme.shapes.small,
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer
                     ),
@@ -229,7 +228,7 @@ fun CompanionModeScreen(
                 ) {
                     items(contacts, key = { it.id }) { contact ->
                         Card(
-                            shape = RoundedCornerShape(12.dp),
+                            shape = MaterialTheme.shapes.small,
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.surface
                             ),

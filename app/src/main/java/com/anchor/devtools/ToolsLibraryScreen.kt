@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -20,9 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.anchor.domain.content.CopingStatements
 import com.anchor.domain.content.GuidedScripts
 import com.anchor.domain.content.SleepChecklist
+import com.anchor.ui.theme.DmMonoFamily
 
 /**
  * TOOLS LIBRARY (dev) — a developer-only browser over the bundled content
@@ -74,10 +78,7 @@ fun ToolsLibraryScreen() {
 
             if (showScripts) {
                 if (selected == null) {
-                    Text(
-                        "${GuidedScripts.ALL.size} scripts (dev preview)",
-                        style = MaterialTheme.typography.titleSmall
-                    )
+                    SectionLabel("${GuidedScripts.ALL.size} scripts (dev preview)")
                     GuidedScripts.ALL.forEach { script ->
                         val minutes = script.totalDurationSec() / 60
                         val seconds = script.totalDurationSec() % 60
@@ -86,7 +87,7 @@ fun ToolsLibraryScreen() {
                         }
                     }
                 } else {
-                    Text(selected.title, style = MaterialTheme.typography.titleSmall)
+                    SectionLabel(selected.title)
                     Text(
                         "${selected.steps.size} steps, ${selected.totalDurationSec()}s total",
                         style = MaterialTheme.typography.bodySmall
@@ -110,7 +111,7 @@ fun ToolsLibraryScreen() {
 
                 HorizontalDivider(Modifier.padding(vertical = 4.dp))
 
-                Text("Sleep checklist (info only)", style = MaterialTheme.typography.titleSmall)
+                SectionLabel("Sleep checklist (info only)")
                 SleepChecklist.ITEMS.forEachIndexed { index, item ->
                     Text(
                         "${index + 1}. $item",
@@ -124,7 +125,30 @@ fun ToolsLibraryScreen() {
 
 @Composable
 private fun ToolButton(label: String, onClick: () -> Unit) {
-    Button(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
-        Text(label)
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(16.dp)
+        )
     }
+}
+
+/** Uppercase-style mono meta label, matching the design canvas's section headers. */
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall.copy(
+            fontFamily = DmMonoFamily,
+            fontSize = 12.sp,
+            letterSpacing = 1.2.sp
+        ),
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
 }
