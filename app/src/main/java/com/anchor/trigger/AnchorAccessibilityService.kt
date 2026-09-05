@@ -28,15 +28,15 @@ class AnchorAccessibilityService : AccessibilityService() {
 
     private companion object {
         const val TAG = "AnchorA11yService"
-        const val LONG_PRESS_TIMEOUT_MS = 380L
+        const val TRIPLE_TAP_WINDOW_MS = 1200L
         const val WAKE_LOCK_TIMEOUT_MS = 3000L
     }
 
     private val handler = Handler(Looper.getMainLooper())
-    private var isButtonPressed = false
-    private var isLongPressHandled = false
-    private var pressedKeyCode = -1
+    private var tapCount = 0
+    private var lastTapTimeMs = 0L
     private var wakeLock: PowerManager.WakeLock? = null
+    private var screenOnWakeLock: PowerManager.WakeLock? = null
     private var partialWakeLock: PowerManager.WakeLock? = null
     private var mediaSession: android.media.session.MediaSession? = null
 
@@ -45,14 +45,7 @@ class AnchorAccessibilityService : AccessibilityService() {
     private var isSilentLoopRunning = false
     private var silentLoopThread: Thread? = null
 
-    private val longPressRunnable = Runnable {
-        if (isButtonPressed && !isLongPressHandled) {
-            isLongPressHandled = true
-            Log.i(TAG, "Grounding long-press detected")
-            triggerGrounding()
-            releaseWakeLock()
-        }
-    }
+
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -110,28 +103,24 @@ class AnchorAccessibilityService : AccessibilityService() {
     override fun onKeyEvent(event: KeyEvent): Boolean {
         val keyCode = event.keyCode
         if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            when (event.action) {
-                KeyEvent.ACTION_DOWN -> {
-                    if (event.repeatCount == 0) {
-                        acquireWakeLock()
-                        isButtonPressed = true
-                        isLongPressHandled = false
-                        pressedKeyCode = keyCode
-                        handler.removeCallbacks(longPressRunnable)
-                        handler.postDelayed(longPressRunnable, LONG_PRESS_TIMEOUT_MS)
-                    }
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                val currentTime = android.os.SystemClock.uptimeMillis()
+                acquireWakeLock()
+
+                if (currentTime - lastTapTimeMs < TRIPLE_TAP_WINDOW_MS) {
+                    tapCount++
+                } else {
+                    tapCount = 1
                 }
-                KeyEvent.ACTION_UP -> {
-                    if (keyCode == pressedKeyCode) {
-                        handler.removeCallbacks(longPressRunnable)
-                        releaseWakeLock()
-                        isButtonPressed = false
-                        val handled = isLongPressHandled
-                        isLongPressHandled = false
-                        if (handled) {
-                            return true
-                        }
-                    }
+                lastTapTimeMs = currentTime
+
+                Log.d(TAG, "Volume key tap count: $tapCount")
+
+                if (tapCount >= 3) {
+                    tapCount = 0
+                    Log.i(TAG, "Rapid triple-tap volume trigger detected!")
+                    triggerGrounding()
+                    return true
                 }
             }
             return false
