@@ -30,19 +30,7 @@ with the 5-scale doubled; if /5, our story still maxes it.
    the artifact, even pre-reply.
 4. **Arduino UNO Q (+2 bonus) — conditional**, see below.
 
-## Arduino UNO Q verdict: chase ONLY with a hardware owner
+## Arduino UNO Q verdict: CUT (team decision — no hardware available)
 
-- Facts: Qualcomm QRB2210 + STM32U585, Debian Linux, BLE 5.1 + WiFi 5,
-  $59 (2GB, hiked from $44 July 2026) / $79 4GB; stocked in India via
-  Robu.in (~₹5k). Datasheets + Arduino App Lab exist.
-- Credible concept: BLE panic-button pendant/fob → phone app fires SOS
-  (BLE GATT via CompanionDeviceManager). Bonus points for the on-board
-  RGB "panic" LED channel mirroring alert state on demo table.
-- Cost: ~₹5–6k + half a day of a hardware-capable teammate (Arduino sketch
-  + Android BLE client + pairing debugging).
-- Risk: BLE pairing failures during live demo directly threaten the
-  10-point Prototype score to gain 2 bonus points (~5%). Bad trade without
-  a hardware owner; good trade with one (fallback: pre-pair on video, live
-  triple-tap as backup trigger).
-- Decision rule: hardware teammate owns it end-to-end by T-6h or we cut it
-  and keep the volume-trigger USP story (already hardware-adjacent, zero cost).
+Bonus foregone (+2). Volume-trigger USP story carries the hardware-adjacent
+narrative at zero cost. No further action.
