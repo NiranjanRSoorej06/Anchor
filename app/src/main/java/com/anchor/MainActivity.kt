@@ -1,5 +1,6 @@
 package com.anchor
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,19 +24,33 @@ import com.anchor.devtools.SessionStateTestScreen
 import com.anchor.devtools.ThemeSwitcher
 import com.anchor.domain.session.SessionStateMachine
 import com.anchor.ui.HomeScreen
+import com.anchor.ui.grounding.GroundingCaptureScreen
 import com.anchor.ui.session.SessionScreen
 import com.anchor.ui.theme.AnchorTheme
 import com.anchor.ui.theme.ThemeVariant
 
-private enum class Screen { HOME, SESSION }
+private enum class Screen { HOME, SESSION, GROUNDING }
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        /**
+         * Set by the widget tap and the volume-button long-press trigger
+         * (see widget/GroundingWidget.kt, trigger/AnchorAccessibilityService.kt)
+         * to open straight into [GroundingCaptureScreen] instead of Home.
+         */
+        const val EXTRA_LAUNCH_GROUNDING = "com.anchor.EXTRA_LAUNCH_GROUNDING"
+    }
+
+    private val launchScreen = mutableStateOf(Screen.HOME)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        applyLaunchIntent(intent)
         setContent {
             var themeVariant by remember { mutableStateOf(ThemeVariant.NORD) }
-            var screen by remember { mutableStateOf(Screen.HOME) }
+            var screen by launchScreen
 
             val context = LocalContext.current
             val machine = remember { SessionStateMachine() }
@@ -64,6 +79,9 @@ class MainActivity : ComponentActivity() {
                                 hapticEngine = hapticEngine,
                                 onExitToHome = { screen = Screen.HOME }
                             )
+                            Screen.GROUNDING -> GroundingCaptureScreen(
+                                onDone = { screen = Screen.HOME }
+                            )
                         }
 
                         // Dev tooling — still reachable by swapping the line above
@@ -74,6 +92,17 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        applyLaunchIntent(intent)
+    }
+
+    private fun applyLaunchIntent(intent: Intent?) {
+        if (intent?.getBooleanExtra(EXTRA_LAUNCH_GROUNDING, false) == true) {
+            launchScreen.value = Screen.GROUNDING
         }
     }
 }

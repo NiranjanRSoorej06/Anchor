@@ -68,5 +68,22 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 
+    // Home-screen widget trigger (grounding feature).
+    implementation("androidx.glance:glance-appwidget:1.1.0")
+
+    // Single-photo capture for the grounding feature. camera-view supplies
+    // PreviewView, used only to give the camera pipeline a real Surface —
+    // never shown at meaningful size, never surfaced to the user.
+    implementation("androidx.camera:camera-core:1.4.1")
+    implementation("androidx.camera:camera-camera2:1.4.1")
+    implementation("androidx.camera:camera-lifecycle:1.4.1")
+    implementation("androidx.camera:camera-view:1.4.1")
+
+    // Bundled (statically-linked) on-device model: works immediately,
+    // fully offline, no first-run download — see ObjectLabelerFactory.
+    implementation("com.google.mlkit:image-labeling:17.0.9")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
     testImplementation("junit:junit:4.13.2")
 }

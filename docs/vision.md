@@ -119,6 +119,24 @@ anything captured leaving the device.
 ## Killed / deferred
 - KILL for demo: Django/Channels backend, Deepgram+Groq+ElevenLabs chain, ambient upload, passive EMA, trauma-type diagnosis cards, Ed25519.
 - STRETCH order: volume clutch first (docs/clutch-research.md verdict — Nugon real but niche, Dictate claim debunked, needs pre-configured Pixel/Samsung, 5.5–9.5d; Tier1 spike, never demo-default) → on-device loudness whisper → brown noise (comfort-labeled) → Purr/Marble.
+  **Update (2026-09-05): the volume-clutch prototype is now built**, not
+  just researched — `trigger/AnchorAccessibilityService.kt` (ported from
+  Nugon's verified long-press pattern, screen-on/locked-awake only, no
+  MediaSession deep-sleep bypass) plus a second, simpler home-screen
+  widget trigger (`widget/GroundingWidget.kt`), both converging on
+  `ui/grounding/GroundingCaptureScreen.kt`: one photo, on-device ML Kit
+  object labeling, a template-built "things you can see" script, photo
+  never persisted. Kept fully off the demo-critical path (`HomeScreen`'s
+  `ANCHOR NOW` flow is untouched) — available as the stretch item this
+  section already calls for, not a replacement for it. Verified: full
+  build/tests green, and the shared capture flow confirmed end-to-end on
+  an emulator (real CameraX capture, on-device labeling, script render,
+  no file ever written to disk/MediaStore, camera-permission-denied
+  fallback). NOT yet verified: the volume long-press's key interception
+  on real hardware — the accessibility service registers and binds
+  correctly, but the emulator's synthetic volume-key input never reached
+  `onKeyEvent()`, so this specific mechanism still needs a real-device
+  check before being demoed, exactly per this doc's own caveats above.
 
 ## India-first support (locked: directory spec, UI later)
 PTSD Coach ships US-only numbers; India gets nothing. Anchor bundles an
