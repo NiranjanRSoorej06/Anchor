@@ -125,6 +125,30 @@ All shared knowledge lives in `/docs` inside this repo so every agent
 - When a doc is superseded (merged into vision or a decision record),
   delete it. History lives in git, not in `archive/` or `*.legacy.md`.
 
+## Cross-Device Workflow
+
+Two machines share this repo:
+
+- **Code machine (opencode):** writes code + docs + review. It has no
+  JDK, SDK, or emulator — so it must NEVER claim a build passed.
+  Confidence comes from small diffs, existing patterns, and unit tests
+  for pure-Kotlin logic.
+- **SDK machine (Claude Code):** pulls, runs
+  `./gradlew assembleDebug`, executes unit tests, verifies on
+  device/emulator, and reports results back.
+
+Rules for code-machine commits:
+
+1. Keep diffs small and independently testable.
+2. Pure-Kotlin logic (state machines, scorers, validators, routers)
+   ships WITH unit tests.
+3. Android-API surface stays behind interfaces with Debug fakes —
+   follow the `HapticEngine` / `DebugHapticEngine` pattern.
+4. Every behavior commit message ends with a `VERIFY ON DEVICE:`
+   checklist: what to tap, expected haptic/screen, edge cases.
+5. Keep `docs/vision.md` and code in sync — no vision change without
+   its code (or an explicit HOLD note), and vice versa.
+
 ## Development Rules
 
 Before implementing a substantial feature:
