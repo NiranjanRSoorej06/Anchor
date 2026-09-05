@@ -119,6 +119,21 @@ object SupportDirectory {
             category = SupportCategory.CRISIS_HELPLINE,
         ),
         SupportEntry(
+            id = "kiran_helpline",
+            name = "KIRAN",
+            phoneNumber = "1800-599-0019",
+            url = null,
+            regions = setOf(NATIONWIDE),
+            hours = "24/7",
+            languages = listOf(
+                "Hindi", "English", "Tamil", "Telugu", "Bengali",
+                "Marathi", "Kannada", "Malayalam", "Gujarati", "Punjabi",
+                "Odia", "Assamese", "Kashmiri", "Urdu",
+            ),
+            onlineOnly = false,
+            category = SupportCategory.CRISIS_HELPLINE,
+        ),
+        SupportEntry(
             id = "therapist_directory",
             name = "Find a Therapist",
             phoneNumber = null,

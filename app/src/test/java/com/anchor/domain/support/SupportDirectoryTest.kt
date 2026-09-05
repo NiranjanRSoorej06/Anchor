@@ -12,8 +12,8 @@ class SupportDirectoryTest {
     // ── Catalogue integrity ─────────────────────────────────────────────
 
     @Test
-    fun `ALL contains exactly 9 entries`() {
-        assertEquals(9, SupportDirectory.ALL.size)
+    fun `ALL contains exactly 10 entries`() {
+        assertEquals(10, SupportDirectory.ALL.size)
     }
 
     @Test
@@ -151,5 +151,30 @@ class SupportDirectoryTest {
     fun `Kashmir Lifeline regions contain Jammu and Kashmir`() {
         val kll = SupportDirectory.ALL.first { it.id == "kashmir_lifeline" }
         assertTrue(kll.regions.contains("Jammu and Kashmir"))
+    }
+
+    // ── KIRAN helpline ──────────────────────────────────────────────
+
+    @Test
+    fun `KIRAN helpline exists with correct fields`() {
+        val kiran = SupportDirectory.ALL.first { it.id == "kiran_helpline" }
+        assertEquals("KIRAN", kiran.name)
+        assertEquals("1800-599-0019", kiran.phoneNumber)
+        assertEquals(setOf(SupportDirectory.NATIONWIDE), kiran.regions)
+        assertEquals("24/7", kiran.hours)
+        assertFalse(kiran.onlineOnly)
+        assertEquals(SupportCategory.CRISIS_HELPLINE, kiran.category)
+    }
+
+    @Test
+    fun `KIRAN is included in nationwide forRegion results`() {
+        val result = SupportDirectory.forRegion(null)
+        assertTrue(result.any { it.id == "kiran_helpline" })
+    }
+
+    @Test
+    fun `KIRAN is included in regional forRegion results`() {
+        val result = SupportDirectory.forRegion("Tamil Nadu")
+        assertTrue(result.any { it.id == "kiran_helpline" })
     }
 }

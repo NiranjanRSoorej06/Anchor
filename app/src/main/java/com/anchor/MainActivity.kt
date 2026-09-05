@@ -22,7 +22,7 @@ import com.anchor.core.audio.createAudioEngine
 import com.anchor.core.audio.createCalmingPlayer
 import com.anchor.core.haptics.createHapticEngine
 import com.anchor.devtools.DevHapticTestScreen
-import com.anchor.devtools.FindSupportScreen
+import com.anchor.ui.support.FindSupportScreen
 import com.anchor.devtools.RoutingLabScreen
 import com.anchor.devtools.SessionStateTestScreen
 import com.anchor.devtools.ThemeSwitcher
@@ -34,8 +34,15 @@ import com.anchor.ui.grounding.GroundingCaptureScreen
 import com.anchor.ui.session.SessionScreen
 import com.anchor.ui.theme.AnchorTheme
 import com.anchor.ui.theme.ThemeVariant
+import com.anchor.ui.tools.ToolsHubScreen
+import com.anchor.ui.tools.TriggerLogScreen
+import com.anchor.ui.tools.JournalScreen
+import com.anchor.ui.tools.MedsScreen
+import com.anchor.ui.tools.GoalsScreen
 
 private enum class Screen { HOME, SESSION, GROUNDING, SUPPORT, TOOLS, COMPANION, MANAGE_SYMPTOMS }
+
+private enum class ToolsSub { HUB, TRIGGER_LOG, JOURNAL, MEDICINE, GOALS }
 
 class MainActivity : ComponentActivity() {
 
@@ -54,11 +61,16 @@ class MainActivity : ComponentActivity() {
         com.anchor.core.audio.AudioEngineProvider.get(this)
         setContent {
             var themeVariant by remember { mutableStateOf(ThemeVariant.NORD) }
+            var toolsSub by remember { mutableStateOf(ToolsSub.HUB) }
             val screen by launchScreen
 
             // System back from any non-HOME destination returns HOME;
             // HOME itself keeps the default behavior (exits the app).
-            BackHandler(enabled = screen != Screen.HOME) {
+            // Exception: Tools sub-screens go back to the tools hub first.
+            BackHandler(enabled = screen == Screen.TOOLS && toolsSub != ToolsSub.HUB) {
+                toolsSub = ToolsSub.HUB
+            }
+            BackHandler(enabled = screen != Screen.HOME && !(screen == Screen.TOOLS && toolsSub != ToolsSub.HUB)) {
                 launchScreen.value = Screen.HOME
             }
 
@@ -108,8 +120,27 @@ class MainActivity : ComponentActivity() {
                                 audioEngine = audioEngine,
                                 onDone = { launchScreen.value = Screen.HOME }
                             )
-                            Screen.SUPPORT -> FindSupportScreen()
-                            Screen.TOOLS -> ToolsLibraryScreen()
+                            Screen.SUPPORT -> FindSupportScreen(
+                                onBack = { launchScreen.value = Screen.HOME }
+                            )
+                            Screen.TOOLS -> when (toolsSub) {
+                                ToolsSub.HUB -> ToolsHubScreen(
+                                    onNavigate = { sub -> toolsSub = ToolsSub.valueOf(sub.uppercase().replace(" ", "_")) },
+                                    onBack = { launchScreen.value = Screen.HOME }
+                                )
+                                ToolsSub.TRIGGER_LOG -> TriggerLogScreen(
+                                    onBack = { toolsSub = ToolsSub.HUB }
+                                )
+                                ToolsSub.JOURNAL -> JournalScreen(
+                                    onBack = { toolsSub = ToolsSub.HUB }
+                                )
+                                ToolsSub.MEDICINE -> MedsScreen(
+                                    onBack = { toolsSub = ToolsSub.HUB }
+                                )
+                                ToolsSub.GOALS -> GoalsScreen(
+                                    onBack = { toolsSub = ToolsSub.HUB }
+                                )
+                            }
                             Screen.COMPANION -> com.anchor.ui.companion.CompanionModeScreen(
                                 onBack = { launchScreen.value = Screen.HOME }
                             )
