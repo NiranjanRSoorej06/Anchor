@@ -41,11 +41,21 @@ import com.anchor.domain.session.TransitionResult
  * verify rejection behavior without needing to hack the state by hand.
  *
  * Haptic integration: this screen (not the state machine) reacts to state
- * changes and calls [HapticEngine.play] when entering GROUNDING, and
- * [HapticEngine.stop] on leaving it. This is the "simpler option" the M4
+ * changes and calls [HapticEngine.play] when entering GROUNDING or
+ * INTERVENTION (both are "an activity is running" stages), and
+ * [HapticEngine.stop] otherwise. This is the "simpler option" the M4
  * brief allows: [SessionStateMachine] stays pure Kotlin with zero knowledge
- * of haptics, and the coordination happens in one `LaunchedEffect` here —
+ * of haptics, and the coordination happens in a `LaunchedEffect` here —
  * no ViewModel or event bus needed for a dev screen this small.
+ *
+ * A second `LaunchedEffect` advances ROUTING to INTERVENTION automatically,
+ * the instant ROUTING is observed — ROUTING has no UI of its own (see
+ * [SessionState.ROUTING]) and no selection logic exists yet, so there is
+ * nothing for a user to choose here.
+ *
+ * SAFETY_STOP is shown with an explicit acknowledgement button and on-screen
+ * text stating plainly that no contact or emergency action happens here —
+ * see [SessionState.SAFETY_STOP].
  *
  * Delete this file and its call site in MainActivity once the real Anchor
  * session screen (a later module) replaces it.
@@ -66,13 +76,22 @@ fun SessionStateTestScreen() {
     }
 
     // The one place this screen touches haptics: play a pattern for as long
-    // as we're in GROUNDING, stop otherwise. HapticEngine only — never
-    // android.os.Vibrator directly.
+    // as an activity (GROUNDING or its routed retry, INTERVENTION) is
+    // running, stop otherwise — including immediately on SAFETY_STOP.
+    // HapticEngine only — never android.os.Vibrator directly.
     LaunchedEffect(state) {
-        if (state == SessionState.GROUNDING) {
+        if (state == SessionState.GROUNDING || state == SessionState.INTERVENTION) {
             hapticEngine.play(HapticPatterns.SLOW_PULSE)
         } else {
             hapticEngine.stop()
+        }
+    }
+
+    // ROUTING is transient and has no UI (see SessionState.ROUTING) — advance
+    // out of it the instant it's observed. No selection logic exists yet.
+    LaunchedEffect(state) {
+        if (state == SessionState.ROUTING) {
+            attempt(machine.beginIntervention())
         }
     }
 
@@ -123,6 +142,25 @@ fun SessionStateTestScreen() {
                 SessionState.RECOVERY -> {
                     DevButton("FINISH RECOVERY") { attempt(machine.finishRecovery()) }
                 }
+                SessionState.ROUTING -> {
+                    // No button: this LaunchedEffect above advances it automatically.
+                    Text(
+                        "Routing… (no selection logic yet — advances immediately)",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                SessionState.INTERVENTION -> {
+                    DevButton("FINISH INTERVENTION") { attempt(machine.finishIntervention()) }
+                }
+                SessionState.SAFETY_STOP -> {
+                    Text(
+                        "Placeholder only: no contact, dialing, or emergency\n" +
+                            "action happens here. A future module attaches the\n" +
+                            "real safety screen.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    DevButton("ACKNOWLEDGE (return to IDLE)") { attempt(machine.acknowledgeSafetyStop()) }
+                }
             }
 
             HorizontalDivider(Modifier.padding(vertical = 4.dp))
@@ -138,6 +176,12 @@ fun SessionStateTestScreen() {
             // any state other than CHECK_IN demonstrates an "X → RECOVERY" rejection.
             DevButton("Force submitCheckIn BETTER (→ RECOVERY)") {
                 attempt(machine.submitCheckIn(CheckInResponse.BETTER))
+            }
+            // acknowledgeSafetyStop()'s target is IDLE, but its *source* is the
+            // interesting thing to test: it should reject from anywhere except
+            // SAFETY_STOP, which is what keeps it from ever firing automatically.
+            DevButton("Force acknowledgeSafetyStop (→ IDLE)") {
+                attempt(machine.acknowledgeSafetyStop())
             }
         }
     }

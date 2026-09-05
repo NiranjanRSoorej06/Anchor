@@ -30,8 +30,11 @@ sealed interface TransitionResult {
  *
  * BETTER / SAME / WORSE in [submitCheckIn] are plain user-reported
  * responses. This class does not interpret them, does not diagnose
- * anything, and does not trigger any emergency or contact behavior —
- * WORSE simply routes back to GROUNDING, exactly like SAME.
+ * anything, and does not trigger any emergency or contact behavior.
+ * BETTER moves toward RECOVERY, SAME moves toward another attempt via
+ * ROUTING, and WORSE moves to SAFETY_STOP — which is itself inert: reaching
+ * it does not, by itself, contact anyone or do anything beyond marking the
+ * spot in the flow where a future module attaches real safety behavior.
  */
 class SessionStateMachine {
 
@@ -56,15 +59,15 @@ class SessionStateMachine {
         transition(from = SessionState.EASING, to = SessionState.CHECK_IN)
 
     /**
-     * BETTER moves on to RECOVERY. SAME and WORSE both simply return to
-     * GROUNDING for another attempt — see the class doc for why WORSE has
-     * no special/automatic behavior here.
+     * BETTER moves on to RECOVERY. SAME moves to ROUTING to try something
+     * else. WORSE moves to SAFETY_STOP — see the class doc for why that
+     * carries no automatic behavior of its own.
      */
     fun submitCheckIn(response: CheckInResponse): TransitionResult {
         val target = when (response) {
             CheckInResponse.BETTER -> SessionState.RECOVERY
-            CheckInResponse.SAME -> SessionState.GROUNDING
-            CheckInResponse.WORSE -> SessionState.GROUNDING
+            CheckInResponse.SAME -> SessionState.ROUTING
+            CheckInResponse.WORSE -> SessionState.SAFETY_STOP
         }
         return transition(from = SessionState.CHECK_IN, to = target)
     }
@@ -75,6 +78,27 @@ class SessionStateMachine {
     /** Only valid while GROUNDING, per the M4 spec. Any other state rejects. */
     fun cancel(): TransitionResult =
         transition(from = SessionState.GROUNDING, to = SessionState.IDLE)
+
+    /**
+     * ROUTING is transient and has no UI of its own (see [SessionState.ROUTING]);
+     * a caller advances out of it immediately after observing it. There is no
+     * selection logic behind this call — it always succeeds when currently
+     * ROUTING and always lands on INTERVENTION.
+     */
+    fun beginIntervention(): TransitionResult =
+        transition(from = SessionState.ROUTING, to = SessionState.INTERVENTION)
+
+    /** Mirrors [finishGrounding] exactly: an activity finished, wind down through EASING. */
+    fun finishIntervention(): TransitionResult =
+        transition(from = SessionState.INTERVENTION, to = SessionState.EASING)
+
+    /**
+     * The only way out of SAFETY_STOP. Deliberately requires an explicit
+     * call — nothing in this class transitions out of SAFETY_STOP on its
+     * own, by design (see [SessionState.SAFETY_STOP]).
+     */
+    fun acknowledgeSafetyStop(): TransitionResult =
+        transition(from = SessionState.SAFETY_STOP, to = SessionState.IDLE)
 
     private fun transition(from: SessionState, to: SessionState): TransitionResult {
         val current = _state.value

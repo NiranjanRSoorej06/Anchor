@@ -26,7 +26,34 @@ enum class SessionState {
     CHECK_IN,
 
     /** Session concluded well; a calmer post-session stage. */
-    RECOVERY
+    RECOVERY,
+
+    /**
+     * Transient: choosing what to try next after a SAME response. Carries
+     * no UI of its own — a caller advances out of it immediately via
+     * [SessionStateMachine.beginIntervention]. There is no selection logic
+     * behind this yet; it exists only so a future module has a state to
+     * attach real routing to.
+     */
+    ROUTING,
+
+    /**
+     * A retry activity is running, chosen by ROUTING. Functionally the same
+     * kind of stage as GROUNDING (an activity plays, then winds down through
+     * EASING) — the separate name only distinguishes "the first attempt"
+     * from "a routed retry" for whatever later reads the session history.
+     */
+    INTERVENTION,
+
+    /**
+     * Reached only from a WORSE check-in response. Stops here and goes no
+     * further on its own — see [SessionStateMachine.acknowledgeSafetyStop].
+     * This state carries NO automatic behavior: no contact, no dialing, no
+     * emergency action of any kind. It exists only to mark "stop, and show
+     * a safety-oriented screen" as a place in the flow; a future module
+     * attaches the actual screen and any user-initiated actions on it.
+     */
+    SAFETY_STOP
 }
 
 /**

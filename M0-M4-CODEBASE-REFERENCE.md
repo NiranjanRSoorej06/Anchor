@@ -344,13 +344,15 @@ screen (duplicated once more in `SessionStateTestScreen.kt`, see §16); no
 product code will need it, because production trigger code will already
 know its own context.
 
-## 10. M4 — Session State Machine
+## 10. M4/M5 — Session State Machine
 
 **States** (`enum class SessionState`): `IDLE, ACTIVATING, GROUNDING,
-EASING, CHECK_IN, RECOVERY`. No state carries data — this is a plain enum,
-not a sealed class hierarchy, because nothing here needs per-state fields.
+EASING, CHECK_IN, RECOVERY, ROUTING, INTERVENTION, SAFETY_STOP` — the first
+six from M4, the last three added in M5 (below). No state carries data —
+this is a plain enum, not a sealed class hierarchy, because nothing here
+needs per-state fields.
 
-**Exact transition table** (method → from → to):
+**Exact transition table** (method → from → to; M5 additions marked):
 
 | Method | From | To |
 |---|---|---|
@@ -359,10 +361,13 @@ not a sealed class hierarchy, because nothing here needs per-state fields.
 | `finishGrounding()` | `GROUNDING` | `EASING` |
 | `completeEasing()` | `EASING` | `CHECK_IN` |
 | `submitCheckIn(BETTER)` | `CHECK_IN` | `RECOVERY` |
-| `submitCheckIn(SAME)` | `CHECK_IN` | `GROUNDING` |
-| `submitCheckIn(WORSE)` | `CHECK_IN` | `GROUNDING` |
+| `submitCheckIn(SAME)` | `CHECK_IN` | `ROUTING` *(M5: was → `GROUNDING`)* |
+| `submitCheckIn(WORSE)` | `CHECK_IN` | `SAFETY_STOP` *(M5: was → `GROUNDING`)* |
 | `finishRecovery()` | `RECOVERY` | `IDLE` |
 | `cancel()` | `GROUNDING` | `IDLE` (rejected from every other state) |
+| `beginIntervention()` **(M5)** | `ROUTING` | `INTERVENTION` |
+| `finishIntervention()` **(M5)** | `INTERVENTION` | `EASING` |
+| `acknowledgeSafetyStop()` **(M5)** | `SAFETY_STOP` | `IDLE` |
 
 Every method funnels through one private `transition(from, to)`: if
 `currentState != from`, it returns `TransitionResult.Rejected(reason =
@@ -370,14 +375,17 @@ Every method funnels through one private `transition(from, to)`: if
 This single guard is what makes invalid transitions impossible and what
 protects against double-taps — calling `start()` twice in a row just gets
 the second call rejected; there is no way to end up with two concurrent
-sessions because there is only one `SessionState` field to begin with.
+sessions because there is only one `SessionState` field to begin with. All
+three M5 methods reuse this exact guard — no new mechanism was introduced.
 
 `submitCheckIn(BETTER/SAME/WORSE)` is the one method with branching logic,
 and the branch is a plain `when` expression choosing a target state — there
 is no interpretation of *why* the user answered that way, no scoring, no
-side effect. `WORSE` is textually and behaviorally identical to `SAME` at
-this layer; the only thing that reads as "safety-related" about it is a
-code comment and a unit test asserting nothing else happens.
+side effect. As of M5, `WORSE` now goes somewhere different from `SAME`
+(`SAFETY_STOP` vs `ROUTING`), but `SAFETY_STOP` itself still does nothing
+beyond exist — no contact, no dialing, no emergency behavior of any kind.
+The only way out of it is the explicit `acknowledgeSafetyStop()` call; the
+state machine will never leave it on its own.
 
 `state: StateFlow<SessionState>` is the read side; `currentState` is a
 synchronous convenience getter for non-Compose callers (used inside the
@@ -388,6 +396,36 @@ class itself, and available to tests).
 is no ViewModel, no repository, no singleton — the Composable itself is the
 current owner. This mirrors the existing haptic-engine pattern from M1/M3
 exactly (see §14 for why no ViewModel was introduced).
+
+### M5 addendum — why GROUNDING and INTERVENTION both exist
+
+M4's audit (this document, first written at the end of M4) flagged an open
+fork: does the eventual session machine *extend* `SessionStateMachine`, or
+get replaced by a new one built from `plan.md §15`'s larger design? The
+team chose **extend**. `ROUTING`, `INTERVENTION`, and `SAFETY_STOP` are the
+result.
+
+The key design decision: `GROUNDING` is the *first* attempt at an activity;
+`INTERVENTION` is what plays instead on a retry (a `SAME` response), chosen
+by `ROUTING`. Both wind down through the same `EASING` state before the
+same `CHECK_IN` question is asked again — so a `SAME` loop is
+`CHECK_IN → ROUTING → INTERVENTION → EASING → CHECK_IN`, reusing `EASING`
+and `CHECK_IN` completely rather than inventing a second "ask Better/Same/
+Worse" state (`plan.md`'s `REASSESSMENT` was deliberately not added
+separately, for exactly this reason).
+
+`ROUTING` has no UI and no selection logic — a `LaunchedEffect` in
+`SessionStateTestScreen` calls `beginIntervention()` the instant `ROUTING`
+is observed, unconditionally. There is nothing to choose from yet; that is
+still future work (the intervention catalog), not part of this change.
+
+`SAFETY_STOP` is reachable, has an on-screen disclaimer stating plainly
+that no contact/dialing/emergency action happens there, and the haptic
+`LaunchedEffect` was extended so it stops immediately on entry (verified
+live: `adb logcat` showed a `stop()` call and no further `play()` call for
+the remainder of that session). This satisfies `evidence.md §10`'s
+requirement that a `WORSE` response stop output immediately — the actual
+safety *screen* remains future work.
 
 ---
 
@@ -624,10 +662,14 @@ All four fixes were verified with a full rebuild, full test run, and (for
 *(none)*
 
 ### Important
-- **M4's `SessionStateMachine` and `plan.md §15`'s intended session state
-  machine are two different designs**, and nothing in the codebase says how
-  they reconcile. See §18 — this is a real decision point for whoever
-  starts the next module, not a bug.
+- **RESOLVED in M5.** M4's `SessionStateMachine` and `plan.md §15`'s
+  intended design were flagged here as two different, unreconciled
+  designs. The team decided to *extend* rather than replace — M5 added
+  `ROUTING`/`INTERVENTION`/`SAFETY_STOP` on top of the existing machine.
+  See §10's M5 addendum. Still open: `plan.md §15`'s `ANCHOR_OPEN`,
+  `OPTIONAL_STATE_SELECT`, `MANUAL_OVERRIDE`, `SESSION_COMPLETE`, and
+  `FOLLOW_UP_*` are not part of the machine yet — that remains future work,
+  not a new fork.
 - **No coordinator/owner layer exists yet.** Fine for two independent dev
   screens; will not scale the moment a real screen needs to share one
   `SessionStateMachine` across recompositions, navigation, or process
@@ -683,10 +725,6 @@ any form:
 
 ## 18. How The Current Architecture Should Evolve
 
-> **FUTURE DESIGN — NOT IMPLEMENTED.** Nothing in this section exists in
-> the codebase. It restates `plan.md`'s intent so the gap in §17 has
-> context, and flags exactly where M4's actual code will need a decision.
-
 `plan.md` (§15, revision 3) describes the eventual full session flow as:
 
 ```
@@ -716,29 +754,38 @@ Episode record (local, private)
 Personal response history (feeds future ranking)
 ```
 
-**What M4 actually built is smaller and different on purpose** — it was
-specified directly, state-by-state, by the M4 task itself, independent of
-`plan.md`'s larger design, to get a working, testable state machine in
-place fast. The concrete gaps between the two:
+**The extend-vs-replace decision this section used to flag as open was made
+in M5: extend.** `SessionStateMachine` now has `ROUTING`, `INTERVENTION`,
+and `SAFETY_STOP` (§10), closing the two most important gaps between M4 and
+this diagram — a `SAME` response now retries through a routed
+`INTERVENTION` rather than looping raw `GROUNDING`, and a `WORSE` response
+reaches a dedicated (still-inert) `SAFETY_STOP` instead of behaving
+identically to `SAME`.
 
-- M4 has no `ROUTING` / `INTERVENTION` distinction — `GROUNDING` is a single
-  state, not "a routine step vs. a routed selection."
-- M4 has no `OPTIONAL_STATE_SELECT` — there is no current-state concept at
-  all yet (§17).
-- M4's `WORSE` does not reach anything like `SAFETY_STOP` — it is
-  behaviorally identical to `SAME`. `plan.md` requires `WORSE` to stop all
-  output immediately and route to a dedicated safety screen; that
-  requirement is **not yet met**, by design (M4 explicitly forbade building
-  emergency/safety behavior this module).
-- M4 has no `FOLLOW_UP_*` states, no persistence, no `ActiveSessionStore`,
-  no process-death handling of any kind.
+**What is still a real gap**, now purely additive (no more forks to
+resolve, just features to build):
 
-**The open decision for whoever picks this up next:** does the future
-session machine *extend* `SessionStateMachine` (add states, keep the same
-`transition()` guard pattern), or does it get *replaced* by a new class
-built directly from `plan.md §15`'s larger state set? Both are reasonable;
-this document takes no position, because that is a product/architecture
-call for a human, not something to decide silently mid-audit.
+- **`ROUTING` has no selection logic.** It advances to `INTERVENTION`
+  unconditionally. Building the intervention catalog and a real routing
+  rule is what would give this state something to actually choose between
+  — see `plan.md §8`.
+- **No `OPTIONAL_STATE_SELECT`.** There is still no current-state concept
+  ("what feels closest right now?") anywhere in the codebase (§17).
+- **`SAFETY_STOP` has no real screen.** It stops haptic/audio output (this
+  is implemented and verified) and requires an explicit acknowledgement to
+  leave, but has no contact option, no crisis resources, nothing beyond a
+  placeholder disclaimer. This is the next safety-adjacent feature to plan.
+- **No `MANUAL_OVERRIDE`, `SESSION_COMPLETE`, or `FOLLOW_UP_*`.** No
+  persistence, no `ActiveSessionStore`, no process-death handling exists —
+  a force-killed app loses all session state, same as at the end of M4.
+- **`cancel()` was deliberately not extended** to `ROUTING`/`INTERVENTION`
+  in M5, to keep that change reviewable as "add three states" rather than
+  "also revisit cancellation." Worth doing before this is user-facing.
+
+None of the above requires reopening the architecture question — they are
+now feature work on a settled foundation, each substantial enough to plan
+on its own rather than being decided implicitly by whichever module reaches
+it first.
 
 ---
 
@@ -987,36 +1034,46 @@ an unreachable STOP button (missing scroll), and mislabeled debug buttons /
 tests whose rejection-reason strings didn't match their own names.
 
 ### Intentionally deferred
-Everything in §17 — no Anchor Now, no intervention catalog, no routing, no
-personalization, no persistence, no audio, no triggers beyond dev buttons,
-no emergency/safety pathway, no AI, no backend, no sensors. `WORSE`
-currently does nothing beyond returning to `GROUNDING` — this is correct
-for M4's explicit scope, not a shortcut that was missed.
+Everything in §17 — no Anchor Now, no intervention catalog (content/data —
+`INTERVENTION` the *state* now exists, `INTERVENTION` the *catalog entry
+concept* does not), no personalization, no persistence, no audio, no
+triggers beyond dev buttons, no real safety screen or contact/emergency
+behavior, no AI, no backend, no sensors. `SAFETY_STOP` exists and is
+reached on `WORSE`, but it is inert by design — no automatic action of any
+kind happens there yet.
 
 ### Remaining risks
-The most important one: **`SessionStateMachine`'s six states are not the
-same design as `plan.md`'s intended full session flow**, and no decision
-has been made about whether the future machine extends this one or replaces
-it (§18). Minor risks: a duplicated ~10-line heuristic across two dev
+**Resolved in M5:** the extend-vs-replace fork on `SessionStateMachine` — the
+team chose extend; `ROUTING`/`INTERVENTION`/`SAFETY_STOP` were added
+(§10). Still open: a duplicated ~10-line emulator heuristic across two dev
 files, one defensively-safe-but-stylistically-risky `!!` in
 `SystemHapticEngine`, and `DevHapticTestScreen` currently being unreachable
-without a manual code edit.
+without a manual code edit. New from M5: `cancel()` still only works from
+`GROUNDING` — it was deliberately not extended to `ROUTING`/`INTERVENTION`,
+so a session stuck retrying currently has no way back to `IDLE` except
+finishing the loop or reaching `RECOVERY`/`SAFETY_STOP` — worth revisiting
+before this becomes a real user-facing screen.
 
 ### Current demo capability
-You can hand someone a phone, tap through a full session
-(`IDLE→ACTIVATING→GROUNDING→EASING→CHECK_IN→RECOVERY→IDLE`), feel a real
-vibration turn on and off exactly when `GROUNDING` starts and ends, and show
-that mashing buttons or attempting an impossible transition cannot break
-it. That is a legitimate, honest hardware+state-machine demo. It is not yet
-a demo of "Anchor helps someone in distress" — there is no distress-facing
-UI at all yet.
+You can hand someone a phone, tap through a full session including a retry
+loop (`IDLE→ACTIVATING→GROUNDING→EASING→CHECK_IN→SAME→ROUTING→
+INTERVENTION→EASING→CHECK_IN→BETTER→RECOVERY→IDLE`), feel a real vibration
+turn on and off exactly during each activity stage, trigger the `WORSE`
+path and show haptics stopping immediately with zero contact/emergency
+behavior firing, and show that mashing buttons or attempting an impossible
+transition cannot break any of it. That is a legitimate, honest
+hardware+state-machine demo, now including the safety-relevant branch. It
+is not yet a demo of "Anchor helps someone in distress" — there is still no
+distress-facing UI, no real intervention content, and no real safety
+screen.
 
 ### Next architectural decision
-Before Module 5 begins, a human should decide: does the next session engine
-extend `SessionStateMachine`, or is it a new implementation built directly
-from `plan.md §15`? That choice shapes everything downstream (routing,
-episode logging, the safety pathway) and should not be made implicitly by
-whichever module happens to touch this file first.
+With the state-machine shape settled, the next real decision is what
+`ROUTING` should actually route *between* — i.e., starting the intervention
+catalog (`plan.md §8`) that gives `INTERVENTION` something other than a
+placeholder haptic to play, and what the real `SAFETY_STOP` screen should
+contain. Both are substantial, safety-adjacent features and should get the
+same plan-first treatment this module did.
 
-**This document describes the codebase as of the end of the M0–M4 audit.
-Module 5 has not been started.**
+**This document describes the codebase as of the end of the M5 extension.
+Module 6 has not been started.**

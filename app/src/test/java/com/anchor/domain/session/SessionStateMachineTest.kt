@@ -62,22 +62,73 @@ class SessionStateMachineTest {
     }
 
     @Test
-    fun `CHECK_IN plus SAME returns to GROUNDING`() {
+    fun `CHECK_IN plus SAME moves to ROUTING`() {
         driveToCheckIn()
         val result = machine.submitCheckIn(CheckInResponse.SAME)
         assertTrue(result is TransitionResult.Success)
-        assertEquals(SessionState.GROUNDING, machine.currentState)
+        assertEquals(SessionState.ROUTING, machine.currentState)
     }
 
     @Test
-    fun `CHECK_IN plus WORSE returns to GROUNDING and triggers nothing else`() {
+    fun `CHECK_IN plus WORSE moves to SAFETY_STOP and triggers nothing else`() {
         driveToCheckIn()
         val result = machine.submitCheckIn(CheckInResponse.WORSE)
         assertTrue(result is TransitionResult.Success)
-        // WORSE behaves exactly like SAME at the state-machine level: a plain
-        // transition back to GROUNDING. No emergency/contact/diagnosis side
-        // effect exists to test, because none exists in this class.
-        assertEquals(SessionState.GROUNDING, machine.currentState)
+        // Reaching SAFETY_STOP is the only effect. No emergency/contact/
+        // diagnosis side effect exists to test, because none exists in this
+        // class — see acknowledgeSafetyStop's own tests below for proof
+        // nothing carries the session further without an explicit call.
+        assertEquals(SessionState.SAFETY_STOP, machine.currentState)
+    }
+
+    @Test
+    fun `ROUTING to INTERVENTION via beginIntervention`() {
+        driveToCheckIn()
+        machine.submitCheckIn(CheckInResponse.SAME) // -> ROUTING
+        val result = machine.beginIntervention()
+        assertTrue(result is TransitionResult.Success)
+        assertEquals(SessionState.INTERVENTION, machine.currentState)
+    }
+
+    @Test
+    fun `INTERVENTION to EASING via finishIntervention`() {
+        driveToCheckIn()
+        machine.submitCheckIn(CheckInResponse.SAME) // -> ROUTING
+        machine.beginIntervention() // -> INTERVENTION
+        val result = machine.finishIntervention()
+        assertTrue(result is TransitionResult.Success)
+        assertEquals(SessionState.EASING, machine.currentState)
+    }
+
+    @Test
+    fun `full SAME loop returns to CHECK_IN via the retry path`() {
+        driveToCheckIn()
+        assertTrue(machine.submitCheckIn(CheckInResponse.SAME) is TransitionResult.Success)
+        assertTrue(machine.beginIntervention() is TransitionResult.Success)
+        assertTrue(machine.finishIntervention() is TransitionResult.Success)
+        assertTrue(machine.completeEasing() is TransitionResult.Success)
+        assertEquals(SessionState.CHECK_IN, machine.currentState)
+    }
+
+    @Test
+    fun `SAFETY_STOP to IDLE via acknowledgeSafetyStop, never through RECOVERY`() {
+        driveToCheckIn()
+        machine.submitCheckIn(CheckInResponse.WORSE) // -> SAFETY_STOP
+        assertEquals(SessionState.SAFETY_STOP, machine.currentState)
+        val result = machine.acknowledgeSafetyStop()
+        assertTrue(result is TransitionResult.Success)
+        assertEquals(SessionState.IDLE, machine.currentState)
+    }
+
+    @Test
+    fun `SAFETY_STOP never advances on its own`() {
+        driveToCheckIn()
+        machine.submitCheckIn(CheckInResponse.WORSE) // -> SAFETY_STOP
+        // No method other than acknowledgeSafetyStop can move out of SAFETY_STOP.
+        assertTrue(machine.start() is TransitionResult.Rejected)
+        assertTrue(machine.beginGrounding() is TransitionResult.Rejected)
+        assertTrue(machine.finishRecovery() is TransitionResult.Rejected)
+        assertEquals(SessionState.SAFETY_STOP, machine.currentState)
     }
 
     @Test
@@ -127,6 +178,27 @@ class SessionStateMachineTest {
         assertTrue(result is TransitionResult.Rejected)
         assertEquals("GROUNDING → RECOVERY", (result as TransitionResult.Rejected).reason)
         assertEquals(SessionState.GROUNDING, machine.currentState)
+    }
+
+    @Test
+    fun `invalid IDLE to INTERVENTION is rejected`() {
+        val result = machine.beginIntervention()
+        assertTrue(result is TransitionResult.Rejected)
+        assertEquals("IDLE → INTERVENTION", (result as TransitionResult.Rejected).reason)
+        assertEquals(SessionState.IDLE, machine.currentState)
+    }
+
+    @Test
+    fun `acknowledgeSafetyStop is rejected from any state other than SAFETY_STOP`() {
+        // acknowledgeSafetyStop's own target is IDLE, so testing rejection
+        // from IDLE would read as the confusing "IDLE -> IDLE" (the same
+        // trap fixed for the debug screen in M4 — see the reference doc).
+        // ACTIVATING makes the guard's behavior legible instead.
+        machine.start() // -> ACTIVATING
+        val result = machine.acknowledgeSafetyStop()
+        assertTrue(result is TransitionResult.Rejected)
+        assertEquals("ACTIVATING → IDLE", (result as TransitionResult.Rejected).reason)
+        assertEquals(SessionState.ACTIVATING, machine.currentState)
     }
 
     @Test
