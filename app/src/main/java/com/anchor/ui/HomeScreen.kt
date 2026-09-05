@@ -121,8 +121,8 @@ fun HomeScreen(
             // CARD 1: Manage Symptoms
             CategoryCard(
                 title = "Manage Symptoms",
-                subtitle = "Evidence-backed exercises tailored to your current distress type",
-                badgeText = "Research-Based",
+                subtitle = "13 clinical exercises for Panic, Flashbacks, Dissociation & Sleep",
+                badgeText = "🫁 13 Exercises",
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 onClick = onManageSymptoms
@@ -134,7 +134,7 @@ fun HomeScreen(
             CategoryCard(
                 title = "Tools Suite",
                 subtitle = "Trigger logger, journal notes, medication tracker & micro-goals",
-                badgeText = "5 Tools",
+                badgeText = "🧰 5 Tools",
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 onClick = onTools
@@ -146,7 +146,7 @@ fun HomeScreen(
             CategoryCard(
                 title = "Get Support",
                 subtitle = "Pincode geo-maps, 24/7 helplines, communities & companion SMS",
-                badgeText = "24/7 Helplines",
+                badgeText = "🆘 24/7 Helplines",
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 onClick = onFindSupport
@@ -161,16 +161,18 @@ fun HomeScreen(
             ) {
                 OutlinedButton(
                     onClick = onEditAnchor,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(10.dp)
                 ) {
-                    Text("Edit Anchor", fontSize = 12.sp)
+                    Text("⚙️ Edit Anchor", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 }
 
                 OutlinedButton(
                     onClick = { showLogsDialog = true },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(10.dp)
                 ) {
-                    Text("Reflection Logs", fontSize = 12.sp)
+                    Text("📜 Reflection Logs", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -196,15 +198,22 @@ fun HomeScreen(
 private fun AnchorNowButton(onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .size(210.dp)
+            .size(215.dp)
             .shadow(
-                elevation = 18.dp,
+                elevation = 22.dp,
                 shape = CircleShape,
-                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
             )
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primary)
+            .background(
+                androidx.compose.ui.graphics.Brush.radialGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+                    )
+                )
+            )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -212,19 +221,25 @@ private fun AnchorNowButton(onClick: () -> Unit) {
             Text(
                 text = "ANCHOR\nNOW",
                 color = MaterialTheme.colorScheme.onPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 24.sp,
                 textAlign = TextAlign.Center,
-                lineHeight = 26.sp
+                lineHeight = 28.sp
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "TAP FOR SOS",
-                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Medium,
-                letterSpacing = 1.sp
-            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
+            ) {
+                Text(
+                    text = "TAP FOR SOS SPRINT",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.2.sp,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                )
+            }
         }
     }
 }
@@ -240,7 +255,8 @@ private fun CategoryCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, contentColor.copy(alpha = 0.2f)),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         onClick = onClick
     ) {
@@ -265,15 +281,15 @@ private fun CategoryCard(
                         style = MaterialTheme.typography.labelSmall,
                         color = contentColor,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = contentColor.copy(alpha = 0.85f)
+                color = contentColor.copy(alpha = 0.88f)
             )
         }
     }

@@ -40,7 +40,7 @@ enum class SymptomCategory(
     val exercises: List<Pair<String, String>>
 ) {
     HYPERAROUSAL(
-        title = "Panic, Anxiety & Hyperarousal",
+        title = "🫁 Panic, Anxiety & Hyperarousal",
         description = "Calm physical agitation, racing heart, and intense panic spikes.",
         exercises = listOf(
             "Resonant Paced Breathing (4s In / 6s Out)" to "Clinical slow-exhale breathing to activate parasympathetic nervous system calm.",
@@ -49,7 +49,7 @@ enum class SymptomCategory(
         )
     ),
     INTRUSION(
-        title = "Flashbacks & Intrusive Memories",
+        title = "👁️ Flashbacks & Intrusive Memories",
         description = "Re-orient yourself immediately to the physical present moment.",
         exercises = listOf(
             "5-4-3-2-1 Sensory Grounding" to "Identify 5 things seen, 4 felt, 3 heard, 2 smelled, and 1 tasted.",
@@ -58,7 +58,7 @@ enum class SymptomCategory(
         )
     ),
     DISSOCIATION(
-        title = "Dissociation, Numbness & Freeze",
+        title = "🧊 Dissociation, Numbness & Freeze",
         description = "Re-engage sensory awareness when feeling detached or frozen.",
         exercises = listOf(
             "Physical Feet Press Grounding" to "Press feet firmly into floor to register physical stability.",
@@ -67,7 +67,7 @@ enum class SymptomCategory(
         )
     ),
     AVOIDANCE(
-        title = "Avoidance, Sadness & Low Mood",
+        title = "☀️ Avoidance, Sadness & Low Mood",
         description = "Gentle cognitive reframing and micro-action steps for low energy.",
         exercises = listOf(
             "Thought Defusion & Labeling" to "Acknowledge distressing thoughts as passing events without judgment.",
@@ -76,7 +76,7 @@ enum class SymptomCategory(
         )
     ),
     SLEEP(
-        title = "Sleep Distress & Nightmares",
+        title = "🌙 Sleep Distress & Nightmares",
         description = "Prepare body and mind for rest or recover from distressing dreams.",
         exercises = listOf(
             "Bedtime Wind-Down Breathing" to "Gentle slow rhythmic breathing tailored for rest.",
