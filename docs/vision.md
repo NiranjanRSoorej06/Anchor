@@ -85,6 +85,11 @@ third-party helplines listed first, not free therapy from us. "Near you"
 for demo = curated static entries + directory URLs; live location lookup
 is stretch (permission-gated, optional). Pointing alone beats PTSD Coach's
 nothing. Numbers must be re-verified before release.
+Near-you verdict (locked): no live street-level clinic lookup — needs
+online Places billing or GBs of offline data, both kill offline-first.
+Ship region-mapped static directory instead: bundled ~25KB state table,
+optional one-shot COARSE fix (never stored, never sent), manual 36-state
+picker fallback. Spec: `docs/near-you-research.md`.
 
 ## Reading list (all agents read these, in order)
 - `docs/vision.md` (this file) — product + locks
@@ -92,4 +97,5 @@ nothing. Numbers must be re-verified before release.
 - `plan.md`, `evidence.md`, `M0-M4-CODEBASE-REFERENCE.md` (repo root) — execution plan, clinical base, codebase truth
 - `docs/teardown.md`, `docs/complaints.md`, `docs/synthesis.md` — why PTSD Coach loses
 - `docs/onboarding-research.md`, `docs/india-resources.md` — onboarding flow spec + India support directory
+- `docs/near-you-research.md` — near-you verdict (region-mapped static, no live POIs)
 - `docs/tech-validation.md`, `docs/trigger-research.md`, `docs/oracle-review.md`, `docs/oracle-rereview.md` — feasibility + kill/defer rationale
