@@ -72,16 +72,16 @@ class WhisperAudioEngine(
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     val audioAttributes = AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                         .build()
                     tts?.setAudioAttributes(audioAttributes)
                 }
 
                 selectSoftFemaleVoice()
-                // Calibrate TTS for warm, natural, soothing female tone (0.98f pitch for natural resonance, 0.80f speech rate for calm breathing pace)
-                tts?.setPitch(0.98f)
-                tts?.setSpeechRate(0.80f)
+                // Calibrate TTS for warm, natural, high-clarity soothing female tone
+                tts?.setPitch(1.05f)
+                tts?.setSpeechRate(0.82f)
                 isTtsReady = true
                 Log.i(TAG, "Whisper TTS ready! Soothing female voice active")
 
@@ -108,28 +108,22 @@ class WhisperAudioEngine(
                     val femaleVoice = voices
                         .filter { voice ->
                             val lang = voice.locale.language
-                            lang == Locale.ENGLISH.language || lang == "en"
+                            (lang == Locale.ENGLISH.language || lang == "en") &&
+                                !voice.isNetworkConnectionRequired &&
+                                voice.features?.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) != true
                         }
                         .sortedWith(
                             compareByDescending<android.speech.tts.Voice> { voice ->
                                 var score = 0
                                 val name = voice.name.lowercase()
                                 if (name.contains("female") || name.contains("fem") ||
-                                    name.contains("sfg") || name.contains("tpf") ||
-                                    name.contains("iom") || name.contains("iol") ||
-                                    name.contains("rfn") || name.contains("wmn") ||
-                                    name.contains("woman") || name.contains("en-us-x-sfg") ||
-                                    name.contains("en-us-x-tpf") || name.contains("en-us-x-iob")) {
+                                    name.contains("sfg") || name.contains("wmn") ||
+                                    name.contains("woman") || name.contains("en-us-x-sfg")) {
                                     score += 100
                                 }
                                 if (voice.quality == android.speech.tts.Voice.QUALITY_VERY_HIGH) score += 50
                                 else if (voice.quality == android.speech.tts.Voice.QUALITY_HIGH) score += 30
                                 else if (voice.quality == android.speech.tts.Voice.QUALITY_NORMAL) score += 10
-
-                                if (voice.latency == android.speech.tts.Voice.LATENCY_VERY_LOW) score += 20
-                                else if (voice.latency == android.speech.tts.Voice.LATENCY_LOW) score += 10
-
-                                if (!voice.isNetworkConnectionRequired) score += 5
                                 score
                             }
                         )
@@ -139,7 +133,7 @@ class WhisperAudioEngine(
 
                     if (femaleVoice != null) {
                         ttsEngine.voice = femaleVoice
-                        Log.i(TAG, "Selected soothing female voice: ${femaleVoice.name} (quality=${femaleVoice.quality})")
+                        Log.i(TAG, "Selected soothing female voice: ${femaleVoice.name}")
                     }
                 }
             }
@@ -169,10 +163,17 @@ class WhisperAudioEngine(
     private fun speakInternal(text: String, queueMode: Int) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                tts?.speak(text, queueMode, null, "WhisperAudio_${System.currentTimeMillis()}")
+                val params = android.os.Bundle().apply {
+                    putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
+                }
+                tts?.speak(text, queueMode, params, "WhisperAudio_${System.currentTimeMillis()}")
             } else {
                 @Suppress("DEPRECATION")
-                tts?.speak(text, queueMode, null)
+                val params = java.util.HashMap<String, String>().apply {
+                    put(TextToSpeech.Engine.KEY_PARAM_VOLUME, "1.0")
+                }
+                @Suppress("DEPRECATION")
+                tts?.speak(text, queueMode, params)
             }
         } catch (e: Exception) {
             Log.w(TAG, "Failed to speak whisper: ${e.message}")
