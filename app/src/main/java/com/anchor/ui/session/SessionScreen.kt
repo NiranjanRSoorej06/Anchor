@@ -38,6 +38,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -223,14 +224,25 @@ fun SessionScreen(
     // Haptic breathing loop during active grounding session (phases 1, 2, and 3)
     LaunchedEffect(currentPhase, isCriticalMode) {
         if (!isCriticalMode && (currentPhase == SprintPhase.BREATHING || currentPhase == SprintPhase.CONDITION_SELECTION || currentPhase == SprintPhase.SPECIALIZED_EXERCISE)) {
-            while (true) {
-                hapticEngine.play(HapticPatterns.BREATHING_IN)
-                delay(4000)
-                hapticEngine.play(HapticPatterns.BREATHING_OUT)
-                delay(6000)
+            try {
+                while (true) {
+                    hapticEngine.play(HapticPatterns.BREATHING_IN)
+                    delay(4000)
+                    hapticEngine.play(HapticPatterns.BREATHING_OUT)
+                    delay(6000)
+                }
+            } finally {
+                hapticEngine.stop()
             }
         } else {
             hapticEngine.stop()
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            hapticEngine.stop()
+            audioEngine.stop()
         }
     }
 
