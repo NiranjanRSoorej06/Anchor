@@ -80,8 +80,8 @@ class WhisperAudioEngine(
 
                 selectSoftFemaleVoice()
                 // Warm, clear, soothing female voice pitch and rate calibration
-                tts?.setPitch(1.08f)
-                tts?.setSpeechRate(0.82f)
+                tts?.setPitch(1.05f)
+                tts?.setSpeechRate(0.70f)
                 isTtsReady = true
                 Log.i(TAG, "Whisper TTS ready! Soothing female voice active")
 
@@ -147,12 +147,8 @@ class WhisperAudioEngine(
     }
 
     override fun speakWhisper(text: String, queueMode: Int) {
-        if (!isWhisperModeActive()) {
-            Log.i(TAG, "Muting speech output completely - no earphones/headphones connected")
-            return
-        }
-
-        Log.i(TAG, "speakWhisper requested: '$text' (earbudsConnected=true, ttsReady=$isTtsReady)")
+        val whisperActive = isWhisperModeActive()
+        Log.i(TAG, "speakWhisper requested: '$text' (whisperActive=$whisperActive, ttsReady=$isTtsReady)")
 
         if (tts == null) {
             Log.d(TAG, "TTS instance was null; re-initializing engine for: $text")
@@ -220,9 +216,7 @@ class DebugAudioEngine(
     override fun isWhisperModeActive(): Boolean = earbudConnected
 
     override fun speakWhisper(text: String, queueMode: Int) {
-        if (earbudConnected) {
-            spokenPhrases.add(text)
-        }
+        spokenPhrases.add(text)
     }
 
     override fun stop() {

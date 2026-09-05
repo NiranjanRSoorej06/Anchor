@@ -77,6 +77,9 @@ data class GroundingCondition(
     val instruction: String
 )
 
+/**
+ * Grounding condition choices mapped directly from docs/anchor_Symptom_Exercise_Evidence_table.md
+ */
 val GROUNDING_CONDITIONS = listOf(
     GroundingCondition(
         id = "dissociation",
@@ -128,8 +131,8 @@ enum class SprintPhase {
  *
  * Supports 1-Minute Anchor Sprint structured into:
  * - 0-20s: Resonant Breathing
- * - 20-30s: Condition Selection (Dissociation, Flashback, Panic, Flooding, Freeze, Shutdown, Loss of Awareness)
- * - 30-60s: Condition-Specific Grounding Exercise
+ * - 20-30s: Condition Selection (mapped from docs/anchor_Symptom_Exercise_Evidence_table.md)
+ * - 30-60s: Condition-Specific Grounding Exercise (read aloud in slow paced cadence lasting full 30s)
  * - Post-Sprint: 5-question reflection questionnaire (outside the timer).
  */
 @Composable
@@ -571,8 +574,62 @@ private fun SpecializedExerciseStage(
     isUntimed: Boolean,
     onComplete: () -> Unit
 ) {
+    // Timed slow step-by-step guidance spoken in a calm pace across the 30-second exercise window
     LaunchedEffect(condition) {
-        audioEngine.speakWhisper(condition.name + ". " + condition.instruction)
+        val speechSteps = when (condition.id) {
+            "dissociation" -> listOf(
+                0L to "Take a slow breath... Look around your space... Name 5 things you can see.",
+                8000L to "Now... focus on your body... Touch and name 4 things you can feel around you.",
+                16000L to "Press both of your feet firmly down into the floor below you.",
+                24000L to "Feel the stability of the floor beneath you. You are here and safe."
+            )
+            "flashback" -> listOf(
+                0L to "Look slowly around the room... Notice where you are right now.",
+                8000L to "Say aloud with me... I am here... I am safe.",
+                16000L to "That was then... this is now.",
+                24000L to "Exhale very slowly through your mouth... Feel this present moment."
+            )
+            "panic" -> listOf(
+                0L to "Inhale gently for 4 seconds... Exhale slowly for 6 seconds.",
+                10000L to "Second breath... Inhale softly... Exhale completely and let your shoulders drop.",
+                20000L to "Third breath... Inhale peace... Exhale all tension."
+            )
+            "flooding" -> listOf(
+                0L to "Place one hand softly on your chest... and one hand on your abdomen.",
+                8000L to "Take 3 slow, soothing breaths into your hands.",
+                18000L to "Acknowledge the emotion you are feeling without judgment.",
+                25000L to "You are safe to let this feeling pass."
+            )
+            "freeze" -> listOf(
+                0L to "Gently wiggle your fingers and your toes.",
+                9000L to "Press your feet firmly down into the floor below.",
+                18000L to "Slowly roll your shoulders up... and down.",
+                25000L to "Feel movement returning gently to your body."
+            )
+            "shutdown" -> listOf(
+                0L to "Take one slow, deep breath.",
+                8000L to "Look at one object near you right now.",
+                16000L to "Describe its color... its shape... and its texture out loud.",
+                24000L to "Focus entirely on that single object."
+            )
+            "loss_awareness" -> listOf(
+                0L to "Pause... Sit or stand somewhere safe.",
+                8000L to "Press your feet firmly into the floor.",
+                16000L to "Say your name out loud... where you are right now.",
+                24000L to "Identify today's date... You are grounded in this moment."
+            )
+            else -> listOf(
+                0L to condition.instruction
+            )
+        }
+
+        var lastDelay = 0L
+        speechSteps.forEach { (timeMs, text) ->
+            val wait = timeMs - lastDelay
+            if (wait > 0) delay(wait)
+            audioEngine.speakWhisper(text)
+            lastDelay = timeMs
+        }
     }
 
     Column(

@@ -219,9 +219,7 @@ class AnchorAccessibilityService : AccessibilityService() {
     private fun triggerGrounding() {
         try {
             val audioEngine = com.anchor.core.audio.createAudioEngine(this)
-            if (audioEngine.isWhisperModeActive()) {
-                audioEngine.speakWhisper("You are in a safe place.")
-            }
+            audioEngine.speakWhisper("You are in a safe place.")
         } catch (e: Exception) {
             Log.w(TAG, "Error playing instant trigger whisper: ${e.message}")
         }

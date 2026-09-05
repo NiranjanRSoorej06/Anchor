@@ -94,7 +94,7 @@ fun HomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 AnchorNowButton {
-                    hapticEngine.play(HapticPatterns.DOUBLE_PULSE)
+                    hapticEngine.play(HapticPatterns.BREATHING_IN)
                     machine.start()
                     onEnterSession()
                 }
