@@ -1075,5 +1075,33 @@ placeholder haptic to play, and what the real `SAFETY_STOP` screen should
 contain. Both are substantial, safety-adjacent features and should get the
 same plan-first treatment this module did.
 
-**This document describes the codebase as of the end of the M5 extension.
-Module 6 has not been started.**
+**This document describes the codebase as of the end of the M5 extension.**
+
+## 24. M6 — Domain layer additions (code machine, built without local SDK)
+
+After M5, nine pure-Kotlin domain packages were added (no Android/Compose
+imports; JUnit4 tests colocated under `app/src/test`). None of this code has
+been compiled — no JDK/SDK on the code machine — so the SDK machine must run
+`./gradlew testDebugUnitTest --tests 'com.anchor.domain.*'` before trusting it.
+
+| Package | Files | Tests | What |
+|---|---|---|---|
+| `domain/routine` | RoutineStep, Routine, RoutineValidator | 21 | Custom calming routines (Haptic/Breathing/SafetyPhrase/Pause), max 8 steps / 180s, all-failures validator |
+| `domain/personalization` | SessionOutcome, PersonalizationScorer | 12 | successRate/bestRoutine/insight ("X helped 4 out of 5 times", MIN_SESSIONS=3) |
+| `domain/assessment` | Pcl5, Pcl5Scorer | 13 | 20-item catalog + scorer, cutoff 31, screening-only KDoc |
+| `domain/safetyplan` | SafetyPlan, SafetyPlanValidator | 12 | Stanley-Brown 6 sections, 5 required, dup detection |
+| `domain/safety` | SafetyModels, SafetyFilter | 18 | SF1/SF2/SF4/SF6/SF8 vetoes + SF7 SAFE_FALLBACK; SF3/SF5 owned elsewhere by design |
+| `domain/routing` | InterventionRouter | 15 | rank(): drop alreadyTried → permits → rate sort → fallback, never empty |
+| `domain/content` | Intervention, InterventionCatalog | 10 | E001–E009 per plan.md §8.3 + toSafetyCandidate() bridge |
+| `domain/profile` | UserProfile, UserProfileValidator | 17 | plan.md UserProfile + toSafetyProfile() bridge, phone regex validation |
+| `domain/history` | Episode, EpisodeStore, InMemoryEpisodeStore | 12 | Episode record + store interface (HAL pattern; DataStore impl = future work) |
+
+Test total: 44 (M0–M5) + 137 new = 181. Also since M5: 3-palette theme
+system (`ui/theme`: NORD/SAGE/SAND, dev-only switcher, no persistence),
+`docs/` single-track knowledge base with `vision.md`, and the CLAUDE.md
+Cross-Device Workflow section. Still NOT built: session-flow wiring of the
+router/catalog, onboarding/profile UI, recording/playback, DataStore
+persistence, panic-button binding, demo script (still OPEN).
+
+**Module 6 (domain models) is complete on paper. Nothing in §24 has been
+build-verified — that is the SDK machine's first job on next pull.**

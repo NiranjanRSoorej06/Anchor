@@ -44,6 +44,14 @@ with `EvidenceStatus` + `toSafetyCandidate()` bridge (10 tests).
 successRate sort → SF7 fallback, never empty (14 tests). E009 brown noise
 flagged EVIDENCE_GAP, never primary. Wiring into session flow + UI NOT built yet.
 
+## Profile + history (locked: models built, persistence/UI later)
+`domain/profile`: `UserProfile` per plan.md (sensory prefs, vetoes,
+contacts, no narrative field by design) + `toSafetyProfile()` bridge +
+validator (17 tests). `domain/history`: `Episode` record + `EpisodeStore`
+interface + `InMemoryEpisodeStore` (HAL pattern; DataStore impl is
+SDK-machine work) (12 tests). Onboarding/profile UI and DataStore wiring
+NOT built yet.
+
 ## Session loop (M5 extended — HOLD on replace vs extend)
 `IDLE → ACTIVATING → GROUNDING → EASING → CHECK_IN → RECOVERY`, plus `ROUTING → INTERVENTION → SAFETY_STOP` (M5).
 OPEN: extend M5 incrementally vs rebuild full plan.md §15. No new states until team unblocks.
