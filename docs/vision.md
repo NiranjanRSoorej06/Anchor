@@ -89,6 +89,12 @@ follows this pattern): exercise content shapes, Stanley-Brown structure
 (published protocol), SUDS concept (adapted to Better/Same/Worse).
 NEVER borrow: forced assessments, repeat reminders, crisis-line spam,
 veteran framing.
+Novelty order (pitch-safe): offline zero-permission ★5, dissociation
+routing ★5, outcome rerank ★4 (mechanism only), custom voice ★4
+(neuroscience-informed), regional routing ★4. Never claim as clinical
+fact: haptics proven, vagal regulation, BLS app, personalization
+improves outcomes, voice reduces anxiety. Full brief:
+`docs/exercise-evidence.md`.
 
 ## Killed / deferred
 - KILL for demo: Django/Channels backend, Deepgram+Groq+ElevenLabs chain, ambient upload, passive EMA, trauma-type diagnosis cards, Ed25519.
