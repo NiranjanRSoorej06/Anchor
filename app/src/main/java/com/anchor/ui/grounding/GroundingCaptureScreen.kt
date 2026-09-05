@@ -7,15 +7,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -23,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anchor.core.audio.AudioDeliveryEngine
 import com.anchor.core.audio.DebugAudioEngine
+import com.anchor.core.companion.CompanionPreferences
+import com.anchor.core.companion.CompanionNotificationEngine
 import com.anchor.domain.grounding.GroundingScript
 import com.anchor.domain.grounding.GroundingScriptBuilder
 import com.anchor.ui.theme.DmMonoFamily
@@ -35,6 +42,9 @@ import kotlinx.coroutines.delay
  * Emergency Mode Audio Delivery:
  * - When earphones are attached: speaks soft female whisper ("You are in a safe place.") instantly on button trigger (<0.2s).
  * - When no earphones are attached: mutes 100% of audio output for silent haptic-only mode.
+ *
+ * SF5 confirm-gate: companion SMS is offered via a visible confirm dialog — never
+ * sent silently in the background.
  */
 @Composable
 fun GroundingCaptureScreen(
@@ -45,12 +55,15 @@ fun GroundingCaptureScreen(
     val script = remember { GroundingScriptBuilder.build(emptyList()) }
     val isWhisper = audioEngine.isWhisperModeActive()
 
+    val companionPrefs = remember { CompanionPreferences(context) }
+    val companionEngine = remember { CompanionNotificationEngine(context) }
+    var showCompanionDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
-        // Dispatch direct background SMS to configured companions
-        try {
-            com.anchor.core.companion.CompanionNotificationEngine(context).notifyCompanion()
-        } catch (e: Exception) {
-            e.printStackTrace()
+        // SF5: if Companion Mode is enabled, show a confirm dialog instead of
+        // sending silently. The grounding script plays regardless.
+        if (companionPrefs.isEnabled && companionPrefs.getContacts().isNotEmpty()) {
+            showCompanionDialog = true
         }
 
         // Smoothly queue sensory grounding sentences after initial trigger safety phrase finishes
@@ -59,6 +72,38 @@ fun GroundingCaptureScreen(
             audioEngine.speakWhisper(sentence, TextToSpeech.QUEUE_ADD)
             delay(4000L)
         }
+    }
+
+    if (showCompanionDialog) {
+        val contactCount = companionPrefs.getContacts().size
+        AlertDialog(
+            onDismissRequest = { showCompanionDialog = false },
+            title = { Text("Alert my contacts?") },
+            text = {
+                Text(
+                    "Send a quiet message to $contactCount trusted contact" +
+                        if (contactCount > 1) "s?" else "?"
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCompanionDialog = false
+                    val phones = companionPrefs.getContacts().map { it.phoneNumber }
+                    val msg = companionPrefs.getMessageText()
+                    companionEngine.sendAfterUserConfirm(
+                        contactPhones = phones,
+                        message = msg
+                    )
+                }) {
+                    Text("Send")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCompanionDialog = false }) {
+                    Text("Skip")
+                }
+            }
+        )
     }
 
     Scaffold { innerPadding ->

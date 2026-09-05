@@ -51,10 +51,11 @@ import com.anchor.domain.session.SessionStateMachine
 import com.anchor.ui.theme.AnchorTheme
 
 /**
- * The real Anchor entry point. Per docs/vision.md's Non-negotiable #2:
+ * The Anchor home screen. Per docs/vision.md's Non-negotiable #2:
  * "ANCHOR NOW is hero entry. Big one-tap button."
  *
- * Supports Dual-Mode Audio & Haptic Delivery and Dashboard Reflection Logs viewer.
+ * Layout: audio-mode indicator → hero button → 3 cards (Manage / Tools / Support)
+ * → discreet footer. Civilian-first copy throughout.
  */
 @Composable
 fun HomeScreen(
@@ -75,58 +76,162 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // ── Audio-mode indicator ──────────────────────────────────────
             Text(
                 text = if (isWhisper) "Whisper Mode · Private Earbuds" else "Speaker Mode · Soothing Voice",
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isWhisper) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(top = 8.dp)
+                color = if (isWhisper) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                AnchorNowButton {
-                    hapticEngine.play(HapticPatterns.DOUBLE_PULSE)
-                    machine.start()
-                    onEnterSession()
-                }
+            // ── Hero: ANCHOR NOW button ───────────────────────────────────
+            AnchorNowButton {
+                hapticEngine.play(HapticPatterns.DOUBLE_PULSE)
+                machine.start()
+                onEnterSession()
             }
 
+            Spacer(modifier = Modifier.height(44.dp))
+
+            // ── Three navigation cards ────────────────────────────────────
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Row(
+                // Card 1 — Manage (→ SESSION)
+                Card(
+                    onClick = {
+                        hapticEngine.play(HapticPatterns.DOUBLE_PULSE)
+                        machine.start()
+                        onEnterSession()
+                    },
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
+                    shape = MaterialTheme.shapes.medium,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.28f)
+                    ),
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+                    )
                 ) {
-                    OutlinedButton(onClick = onFindSupport) { Text("Find Support") }
-                    OutlinedButton(onClick = onTools) { Text("Tools") }
-                    OutlinedButton(onClick = onCompanionMode) { Text("Companion") }
+                    Column(modifier = Modifier.padding(22.dp)) {
+                        Text(
+                            text = "Manage",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "A few quiet minutes of guided breathing and grounding.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Not a diagnosis or cure \u2014 just a moment to breathe.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
+                        )
+                    }
                 }
 
-                OutlinedButton(
-                    onClick = { showLogsDialog = true },
-                    modifier = Modifier.fillMaxWidth(0.9f)
+                // Card 2 — Tools (→ TOOLS)
+                Card(
+                    onClick = onTools,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                    ),
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
+                    )
                 ) {
-                    Text("Reflection Logs")
+                    Column(modifier = Modifier.padding(22.dp)) {
+                        Text(
+                            text = "Tools",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Guided exercises and coping techniques you can use anytime.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Card 3 — Support (→ SUPPORT)
+                Card(
+                    onClick = onFindSupport,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                    ),
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(22.dp)) {
+                        Text(
+                            text = "Support",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Find professional help nearby \u2014 you don\u2019t have to do this alone.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
 
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ── Reflection logs + companion links (compact row) ───────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(onClick = { showLogsDialog = true }) {
+                    Text(
+                        text = "Reflection Logs",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+                Text(
+                    text = "\u00B7",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+                TextButton(onClick = onCompanionMode) {
+                    Text(
+                        text = "People Around Me",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
+
+            // ── Footer disclaimer ─────────────────────────────────────────
             Text(
-                text = "Not a replacement for professional care · works offline",
+                text = "Not a replacement for professional care \u00B7 works offline",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier.padding(bottom = 8.dp, top = 4.dp)
             )
         }
 
@@ -139,31 +244,50 @@ fun HomeScreen(
     }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Hero button
+// ──────────────────────────────────────────────────────────────────────────────
+
 @Composable
 private fun AnchorNowButton(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(236.dp)
             .shadow(
-                elevation = 20.dp,
+                elevation = 24.dp,
                 shape = CircleShape,
-                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.30f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.30f)
             )
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.primary)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "ANCHOR\nNOW",
-            color = MaterialTheme.colorScheme.onPrimary,
-            fontWeight = FontWeight.Bold,
-            fontSize = 22.sp,
-            textAlign = TextAlign.Center
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "ANCHOR",
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 26.sp,
+                letterSpacing = 2.sp,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = "NOW",
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 26.sp,
+                letterSpacing = 2.sp,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Sprint logs dialog (carried forward from original)
+// ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun SprintLogsViewerDialog(

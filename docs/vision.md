@@ -17,6 +17,7 @@ Offline grounding button that works in airplane mode. Haptic in <300ms, no quizz
 7. **Dignity SMS via intent.** Pre-written templates ("rough moment, don't need you to do anything…") through `ACTION_SENDTO`. No Ed25519 for demo.
 8. **Safety plan ships.** Stanley-Brown 6-step plan (`domain/safetyplan` model + validator built), user-entered text only, display-only — no auto-dial, no auto-SMS. UI later.
 9. **Persistence: DataStore + JSON, on-device only.** Profile, routines, episodes, safety plan. Matches the `EpisodeStore` interface; SDK machine implements.
+10. **SF5 override (2026-09-05): team authorizes confirm-gate auto-send for demo** — `CompanionNotificationEngine.sendAfterUserConfirm()` is the sole SMS path; silent background auto-send stays banned.
 
 ## Onboarding (locked: one-time quiz OK, never repeated)
 One-time structured quiz at onboarding is FINE. Complaint was repeated quizzes, not onboarding. Rule: quiz once → tool becomes functional, never nags again.

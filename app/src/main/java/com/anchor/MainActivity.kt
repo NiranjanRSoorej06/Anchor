@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.anchor.core.audio.createAudioEngine
+import com.anchor.core.audio.createCalmingPlayer
 import com.anchor.core.haptics.createHapticEngine
 import com.anchor.devtools.DevHapticTestScreen
 import com.anchor.devtools.FindSupportScreen
@@ -64,6 +65,7 @@ class MainActivity : ComponentActivity() {
             val machine = remember { SessionStateMachine() }
             val hapticEngine = remember { com.anchor.core.haptics.createHapticEngine(context) }
             val audioEngine = remember { createAudioEngine(context) }
+            val calmingPlayer = remember { createCalmingPlayer(context) }
 
             AnchorTheme(variant = themeVariant) {
                 Column(
@@ -89,6 +91,7 @@ class MainActivity : ComponentActivity() {
                                 machine = machine,
                                 hapticEngine = hapticEngine,
                                 audioEngine = audioEngine,
+                                calmingPlayer = calmingPlayer,
                                 onExitToHome = { launchScreen.value = Screen.HOME }
                             )
                             Screen.GROUNDING -> GroundingCaptureScreen(

@@ -240,3 +240,11 @@ class DebugAudioEngine(
 fun createAudioEngine(context: Context): AudioDeliveryEngine {
     return AudioEngineProvider.get(context)
 }
+
+/**
+ * Factory function to instantiate a production [CalmingAudioPlayer] backed by
+ * [MediaPlayer][android.media.MediaPlayer]. Mirrors the [createAudioEngine] pattern.
+ */
+fun createCalmingPlayer(context: Context): CalmingAudioPlayer {
+    return MediaPlayerCalmingAudioPlayer(context)
+}

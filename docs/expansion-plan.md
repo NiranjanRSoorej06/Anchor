@@ -81,10 +81,14 @@ Every placeholder says "we're working on it" and is clickable-to-explain. Acute 
 placeholders. Permissions asked in context (SMS, notifications), zero-permission story preserved
 for core SOS.
 
-## 8. Open team decisions (grill)
+## 8. Team decisions (locked this turn)
 
-1. Companion auto-SMS vs SF5: lock-compliant intent (default, no decision needed) or formal
-   lock-override with confirm-gate SmsManager (requires `vision.md` update)?
-2. Loved-one mp3: bundled-only for demo (recommended per Gate 1) or SAF picker now?
-3. Maps: generic pincode geo: query (recommended) vs curated-map embed?
-4. Must-live symptom clusters for demo day if time runs short?
+1. Companion: formal SF5/#7 lock-OVERRIDE — auto-send kept but ONLY behind an explicit user tap
+   ("Alert my contacts" confirm-gate, never silent background). `vision.md` gets an override
+   note in P2. Trade-off accepted: SEND_SMS runtime prompt + Play-policy justification burden;
+   demo story = explicit consent at moment of crisis.
+2. Loved-one mp3: bundled-only for demo (SAF picker Tier1).
+3. Maps: generic pincode `geo:` query (RAAH as secondary link).
+4. Clusters: ALL FIVE live (hyperarousal, intrusion, dissociation, sleep, avoidance/mood) —
+   APK content usable as structural reference only, paraphrased into our own research-based
+   copy, never verbatim.

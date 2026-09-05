@@ -11,28 +11,38 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -52,115 +62,158 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anchor.core.audio.AudioDeliveryEngine
+import com.anchor.core.audio.CalmingAudioPlayer
 import com.anchor.core.audio.DebugAudioEngine
 import com.anchor.core.companion.CompanionNotificationEngine
+import com.anchor.core.companion.CompanionPreferences
 import com.anchor.core.haptics.HapticEngine
 import com.anchor.core.haptics.HapticPatterns
 import com.anchor.core.logging.SprintExperienceLog
 import com.anchor.core.logging.SprintLogStore
+import com.anchor.domain.content.Intervention
+import com.anchor.domain.routing.recommendInterventions
 import com.anchor.domain.session.CheckInResponse
 import com.anchor.domain.session.SessionState
 import com.anchor.domain.session.SessionStateMachine
+import com.anchor.domain.triage.IncidentKind
 import com.anchor.ui.theme.AnchorColors
 import kotlinx.coroutines.delay
 
-/** Total duration for the Anchor Sprint in seconds (1 minute). */
-private const val SPRINT_DURATION_SECONDS = 60
+/** Total duration for the Anchor Sprint in seconds — 30s breathing window. */
+private const val SPRINT_DURATION_SECONDS = 30
 
-data class GroundingCondition(
+// ──────────────────────────────────────────────────────────────────────────────
+// Comfort tools available during the breathing stage
+// ──────────────────────────────────────────────────────────────────────────────
+
+enum class ComfortTool(
     val id: String,
-    val name: String,
-    val instruction: String
-)
-
-val GROUNDING_CONDITIONS = listOf(
-    GroundingCondition(
-        id = "dissociation",
-        name = "Dissociation",
-        instruction = "Name 5 things you see, 4 things you feel, and press both feet firmly into the floor."
+    val label: String,
+    val description: String,
+    val spokenPrompt: String
+) {
+    BREATHING(
+        id = "breathing",
+        label = "Breathing",
+        description = "Breathe in for 4 seconds, out for 6 seconds.",
+        spokenPrompt = "Breathe in slowly through your nose… and breathe out completely."
     ),
-    GroundingCondition(
-        id = "flashback",
-        name = "Flashback",
-        instruction = "Look around and say aloud: \"I am here, I am safe, that was then, this is now,\" while slowly breathing out."
+    GROUNDING_54321(
+        id = "grounding",
+        label = "5-4-3-2-1",
+        description = "Name 5 things you see, 4 you hear, 3 you feel, 2 you smell, 1 you taste.",
+        spokenPrompt = "Look around you. Name five things you can see. Then four you can hear."
     ),
-    GroundingCondition(
-        id = "panic",
-        name = "Panic",
-        instruction = "Inhale gently for 4 seconds, exhale slowly for 6 seconds; repeat 3 times."
+    PMR_LITE(
+        id = "pmr",
+        label = "PMR-lite",
+        description = "Tense each muscle group gently, then let it go.",
+        spokenPrompt = "Tense your shoulders gently… hold for a moment… and let them drop."
     ),
-    GroundingCondition(
-        id = "flooding",
-        name = "Emotional Flooding",
-        instruction = "Put one hand on your chest and one on your abdomen; take 3 slow breaths and name the emotion you feel."
-    ),
-    GroundingCondition(
-        id = "freeze",
-        name = "Freeze Response",
-        instruction = "Wiggle your fingers and toes, press your feet into the floor, then slowly move your shoulders."
-    ),
-    GroundingCondition(
-        id = "shutdown",
-        name = "Shutdown",
-        instruction = "Take one slow breath, look at one nearby object, and describe its color, shape, and texture aloud."
-    ),
-    GroundingCondition(
-        id = "loss_awareness",
-        name = "Loss of Awareness",
-        instruction = "Stop what you're doing, sit or stand somewhere safe, press your feet into the floor, and identify your name, location, and today's date."
+    SAFE_PLACE(
+        id = "safe_place",
+        label = "Safe Place",
+        description = "Picture a place where you feel completely safe and calm.",
+        spokenPrompt = "Close your eyes for a moment. Picture a place where you feel completely safe."
     )
-)
-
-enum class SprintPhase {
-    BREATHING,             // 0s - 20s
-    CONDITION_SELECTION,   // 20s - 30s
-    SPECIALIZED_EXERCISE,  // 30s - 60s
-    INTERVIEW              // Questionnaire outside timer
 }
 
-/**
- * The real session screen: reacts to [SessionStateMachine.state] and drives
- * [HapticEngine] and [AudioDeliveryEngine].
- *
- * Supports 1-Minute Anchor Sprint structured into:
- * - 0-20s: Resonant Breathing
- * - 20-30s: Condition Selection (Dissociation, Flashback, Panic, Flooding, Freeze, Shutdown, Loss of Awareness)
- * - 30-60s: Condition-Specific Grounding Exercise
- * - Post-Sprint: 5-question reflection questionnaire (outside the timer).
- */
+// ──────────────────────────────────────────────────────────────────────────────
+// UI phases for the SOS flow (driven by user actions, not the state machine)
+// ──────────────────────────────────────────────────────────────────────────────
+
+private enum class SprintPhase {
+    BREATHING,       // 0-30 s  — breathing with comfort-tool chips
+    FEEL_BETTER,     // timer expired → "How are you feeling?"
+    JOURNAL,         // optional in-memory journal, ≤ 280 chars
+    INCIDENT_PICKER, // pick what happened from IncidentKind
+    RECOMMENDED      // recommended interventions from catalog
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Difficulty / warning helpers for recommended interventions
+// ──────────────────────────────────────────────────────────────────────────────
+
+private enum class DifficultyLevel(val label: String) {
+    GENTLE("Gentle"),
+    MODERATE("Moderate")
+}
+
+private fun difficultyFor(intervention: Intervention): DifficultyLevel = when {
+    intervention.interoceptive && intervention.requiresHaptics -> DifficultyLevel.MODERATE
+    else -> DifficultyLevel.GENTLE
+}
+
+private fun warningFor(intervention: Intervention): String = when {
+    intervention.interoceptive ->
+        "Body-focused — start gently, stop anytime."
+    intervention.requiresVoice ->
+        "You\u2019ll speak a few simple words — no pressure."
+    intervention.requiresHaptics ->
+        "Uses physical sensation — adjust as needed."
+    else ->
+        "Go at your own pace — there\u2019s no wrong way to do this."
+}
+
+private val IncidentKind.civilianLabel: String
+    get() = when (this) {
+        IncidentKind.PANIC           -> "Heart racing, can\u2019t breathe"
+        IncidentKind.FLASHBACK       -> "A memory playing like it\u2019s happening now"
+        IncidentKind.NIGHTMARE       -> "Woke from a bad dream"
+        IncidentKind.DISSOCIATION    -> "Feeling foggy or unreal"
+        IncidentKind.ANGER_SPIKE     -> "Sudden anger or tension"
+        IncidentKind.AVOIDANCE_URGE  -> "Wanting to avoid something"
+        IncidentKind.SENSORY_OVERLOAD -> "Lights, sounds, or textures feel like too much"
+        IncidentKind.LOW_MOOD        -> "Heavy sadness, low energy"
+        IncidentKind.NOT_SURE        -> "Something\u2019s off, can\u2019t name it"
+    }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Main session screen
+// ──────────────────────────────────────────────────────────────────────────────
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SessionScreen(
     machine: SessionStateMachine,
     hapticEngine: HapticEngine,
     audioEngine: AudioDeliveryEngine = DebugAudioEngine(),
+    calmingPlayer: CalmingAudioPlayer,
     onExitToHome: () -> Unit
 ) {
     val context = LocalContext.current
     val state by machine.state.collectAsState()
     val isWhisper = audioEngine.isWhisperModeActive()
     val companionEngine = remember { CompanionNotificationEngine(context) }
+    val companionPrefs = remember { CompanionPreferences(context) }
     val logStore = remember { SprintLogStore(context) }
 
+    // ── Sprint state ──────────────────────────────────────────────────────
     var secondsRemaining by remember { mutableIntStateOf(SPRINT_DURATION_SECONDS) }
     var currentPhase by remember { mutableStateOf(SprintPhase.BREATHING) }
-    var isUntimedMode by remember { mutableStateOf(false) }
-    var selectedCondition by remember { mutableStateOf<GroundingCondition?>(null) }
+    var selectedTool by remember { mutableStateOf(ComfortTool.BREATHING) }
 
+    // ── Journal state ─────────────────────────────────────────────────────
+    var journalText by remember { mutableStateOf("") }
+    var showSkipNote by remember { mutableStateOf(false) }
+
+    // ── Incident state ────────────────────────────────────────────────────
+    var selectedIncident by remember { mutableStateOf<IncidentKind?>(null) }
+
+    // ── Recommended state ─────────────────────────────────────────────────
+    var recommendedList by remember { mutableStateOf<List<Intervention>>(emptyList()) }
+
+    // ── Alert / critical state ────────────────────────────────────────────
     var isCriticalMode by remember { mutableStateOf(false) }
     var alertSent by remember { mutableStateOf(false) }
+    var showConfirmAlert by remember { mutableStateOf(false) }
     var showSafetyPlanDialog by remember { mutableStateOf(false) }
-
-    // Interview state variables
-    var interviewStep by remember { mutableIntStateOf(0) }
-    var q1Distress by remember { mutableStateOf<String?>(null) }
-    var q2Trigger by remember { mutableStateOf<String?>(null) }
-    var q3Haptics by remember { mutableStateOf<String?>(null) }
-    var q4Audio by remember { mutableStateOf<String?>(null) }
-    var q5State by remember { mutableStateOf<String?>(null) }
 
     // Synchronize critical mode if state hits SAFETY_STOP
     LaunchedEffect(state) {
@@ -174,53 +227,49 @@ fun SessionScreen(
         if (state == SessionState.ACTIVATING) {
             secondsRemaining = SPRINT_DURATION_SECONDS
             currentPhase = SprintPhase.BREATHING
-            isUntimedMode = false
-            selectedCondition = null
+            selectedTool = ComfortTool.BREATHING
+            journalText = ""
+            showSkipNote = false
+            selectedIncident = null
+            recommendedList = emptyList()
             isCriticalMode = false
             alertSent = false
-            interviewStep = 0
-            q1Distress = null
-            q2Trigger = null
-            q3Haptics = null
-            q4Audio = null
-            q5State = null
+            showConfirmAlert = false
             machine.beginGrounding()
         }
     }
 
-    // 60-Second Sprint Timer & Phase Transitions
-    LaunchedEffect(state, isCriticalMode, isUntimedMode, currentPhase) {
-        if (!isCriticalMode && !isUntimedMode && currentPhase != SprintPhase.INTERVIEW &&
-            (state == SessionState.GROUNDING || state == SessionState.INTERVENTION || state == SessionState.CHECK_IN)) {
-            while (secondsRemaining > 0 && !isCriticalMode && !isUntimedMode && currentPhase != SprintPhase.INTERVIEW) {
+    // Transition machine from GROUNDING → EASING → CHECK_IN when breathing ends
+    LaunchedEffect(currentPhase) {
+        if (currentPhase != SprintPhase.BREATHING &&
+            machine.currentState == SessionState.GROUNDING
+        ) {
+            machine.finishGrounding()
+            machine.completeEasing()
+        }
+    }
+
+    // ── 30-Second Sprint Timer & Phase Transitions ────────────────────────
+    LaunchedEffect(state, isCriticalMode, currentPhase) {
+        if (!isCriticalMode && currentPhase == SprintPhase.BREATHING &&
+            (state == SessionState.GROUNDING || state == SessionState.INTERVENTION || state == SessionState.CHECK_IN)
+        ) {
+            while (secondsRemaining > 0 && !isCriticalMode && currentPhase == SprintPhase.BREATHING) {
                 delay(1000L)
                 secondsRemaining--
-
-                // Phase 1 -> Phase 2 (at 20s mark, i.e., 40s remaining)
-                if (secondsRemaining == 40 && currentPhase == SprintPhase.BREATHING) {
-                    currentPhase = SprintPhase.CONDITION_SELECTION
-                }
-
-                // Phase 2 -> Phase 3 (at 30s mark, i.e., 30s remaining)
-                if (secondsRemaining == 30 && currentPhase == SprintPhase.CONDITION_SELECTION) {
-                    if (selectedCondition == null) {
-                        selectedCondition = GROUNDING_CONDITIONS[0] // Default 1st choice (Dissociation)
-                    }
-                    currentPhase = SprintPhase.SPECIALIZED_EXERCISE
-                }
             }
-
-            // 60-second sprint timer complete! Move to questionnaire outside the timer
-            if (secondsRemaining <= 0 && currentPhase == SprintPhase.SPECIALIZED_EXERCISE) {
-                currentPhase = SprintPhase.INTERVIEW
+            // Timer complete → ask how they feel
+            if (secondsRemaining <= 0 && currentPhase == SprintPhase.BREATHING) {
+                currentPhase = SprintPhase.FEEL_BETTER
             }
         }
     }
 
-    // Haptic breathing loop during BREATHING phase
+    // ── Haptic breathing loop + calming audio during BREATHING phase ──────
     LaunchedEffect(currentPhase, isCriticalMode) {
         if (!isCriticalMode && currentPhase == SprintPhase.BREATHING) {
-            while (true) {
+            calmingPlayer.play("calm_loop.mp3")
+            while (currentPhase == SprintPhase.BREATHING && !isCriticalMode) {
                 hapticEngine.play(HapticPatterns.BREATHING_IN)
                 delay(4000)
                 hapticEngine.play(HapticPatterns.BREATHING_OUT)
@@ -229,6 +278,25 @@ fun SessionScreen(
         } else {
             hapticEngine.stop()
             audioEngine.stop()
+            calmingPlayer.stop()
+        }
+    }
+
+    // ── Spoken prompts for selected comfort tool ──────────────────────────
+    LaunchedEffect(selectedTool) {
+        if (currentPhase == SprintPhase.BREATHING && !isCriticalMode) {
+            when (selectedTool) {
+                ComfortTool.BREATHING -> {
+                    // Continuous breathing prompts handled by haptic loop context
+                    // Just speak the initial cue
+                    audioEngine.speakWhisper("Breathe in slowly through your nose…")
+                    delay(4000)
+                    audioEngine.speakWhisper("Breathe out completely…")
+                }
+                else -> {
+                    audioEngine.speakWhisper(selectedTool.spokenPrompt)
+                }
+            }
         }
     }
 
@@ -267,36 +335,35 @@ fun SessionScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (!isCriticalMode && currentPhase != SprintPhase.INTERVIEW) {
-                    // Sprint Timer Badge & Mode Badge
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                if (!isCriticalMode) {
+                    // ── Sprint timer badge & mode indicator ────────────────
+                    if (currentPhase == SprintPhase.BREATHING) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                            ) {
+                                Text(
+                                    text = "30s GROUNDING: 00:${secondsRemaining.toString().padStart(2, '0')}",
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                )
+                            }
                             Text(
-                                text = if (isUntimedMode) "UNTIMED SPRINT" else "1-MIN SPRINT: 00:${secondsRemaining.toString().padStart(2, '0')}",
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                text = if (isWhisper) "Whisper" else "Speaker",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isWhisper) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
                             )
                         }
 
-                        Text(
-                            text = if (isWhisper) "Whisper Mode" else "Speaker Mode",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (isWhisper) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                        )
-                    }
-
-                    if (!isUntimedMode) {
                         LinearProgressIndicator(
                             progress = { secondsRemaining / SPRINT_DURATION_SECONDS.toFloat() },
                             modifier = Modifier
@@ -304,29 +371,85 @@ fun SessionScreen(
                                 .height(6.dp)
                                 .clip(RoundedCornerShape(3.dp))
                                 .padding(bottom = 16.dp),
-                            color = if (secondsRemaining < 15) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            color = if (secondsRemaining < 10) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.primary,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     }
-                }
 
-                if (isCriticalMode) {
+                    // ── Phase content ─────────────────────────────────────
+                    when (currentPhase) {
+                        SprintPhase.BREATHING -> BreathingStage(
+                            selectedTool = selectedTool,
+                            onToolSelected = { selectedTool = it },
+                            audioEngine = audioEngine,
+                            onSteadyClicked = {
+                                currentPhase = SprintPhase.JOURNAL
+                            }
+                        )
+
+                        SprintPhase.FEEL_BETTER -> FeelBetterStage(
+                            onFeelingBetter = { currentPhase = SprintPhase.JOURNAL },
+                            onStillFeelingIt = { currentPhase = SprintPhase.JOURNAL }
+                        )
+
+                        SprintPhase.JOURNAL -> JournalStage(
+                            text = journalText,
+                            onTextChange = { journalText = it.take(280) },
+                            showSkipNote = showSkipNote,
+                            onSave = { currentPhase = SprintPhase.INCIDENT_PICKER },
+                            onSkip = {
+                                if (journalText.isBlank()) {
+                                    showSkipNote = true
+                                } else {
+                                    currentPhase = SprintPhase.INCIDENT_PICKER
+                                }
+                            },
+                            onContinueFromNote = { currentPhase = SprintPhase.INCIDENT_PICKER }
+                        )
+
+                        SprintPhase.INCIDENT_PICKER -> IncidentPickerStage(
+                            onSelect = { kind ->
+                                selectedIncident = kind
+                                recommendedList = recommendInterventions(kind)
+                                currentPhase = SprintPhase.RECOMMENDED
+                            }
+                        )
+
+                        SprintPhase.RECOMMENDED -> RecommendedStage(
+                            recommendations = recommendedList,
+                            onFeelingBetter = {
+                                logStore.saveLog(
+                                    SprintExperienceLog(
+                                        comfortableToTalk = false,
+                                        finalState = "Feeling Better"
+                                    )
+                                )
+                                machine.submitCheckIn(CheckInResponse.BETTER)
+                            },
+                            onStillNeedHelp = { showConfirmAlert = true }
+                        )
+                    }
+                } else {
+                    // ── Critical emergency stage ───────────────────────────
                     CriticalEmergencyStage(
+                        alertSent = alertSent,
                         onCallHelpline = {
-                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:14416"))
-                            context.startActivity(intent)
+                            context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:14416")))
                         },
                         onCallEmergency = {
-                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:112"))
-                            context.startActivity(intent)
+                            context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:112")))
                         },
                         onOpenSafetyPlan = { showSafetyPlanDialog = true },
                         onRestartSprint = {
                             isCriticalMode = false
                             secondsRemaining = SPRINT_DURATION_SECONDS
                             currentPhase = SprintPhase.BREATHING
-                            isUntimedMode = false
-                            selectedCondition = null
+                            selectedTool = ComfortTool.BREATHING
+                            journalText = ""
+                            showSkipNote = false
+                            selectedIncident = null
+                            recommendedList = emptyList()
                             alertSent = false
                             machine.start()
                         },
@@ -340,93 +463,32 @@ fun SessionScreen(
                             onExitToHome()
                         }
                     )
-                } else {
-                    when (currentPhase) {
-                        SprintPhase.BREATHING -> BreathingStage(
-                            audioEngine = audioEngine,
-                            onSteadyClicked = {
-                                // Early "I feel steady" tap during 1st 20s: takes user to condition choice without timer
-                                isUntimedMode = true
-                                currentPhase = SprintPhase.CONDITION_SELECTION
-                            }
-                        )
-
-                        SprintPhase.CONDITION_SELECTION -> ConditionSelectionStage(
-                            conditions = GROUNDING_CONDITIONS,
-                            selectedId = selectedCondition?.id,
-                            onSelect = { cond ->
-                                selectedCondition = cond
-                                currentPhase = SprintPhase.SPECIALIZED_EXERCISE
-                            }
-                        )
-
-                        SprintPhase.SPECIALIZED_EXERCISE -> SpecializedExerciseStage(
-                            condition = selectedCondition ?: GROUNDING_CONDITIONS[0],
-                            audioEngine = audioEngine,
-                            isUntimed = isUntimedMode,
-                            onComplete = {
-                                currentPhase = SprintPhase.INTERVIEW
-                            }
-                        )
-
-                        SprintPhase.INTERVIEW -> ExperienceInterviewStage(
-                            step = interviewStep,
-                            onStepChange = { interviewStep = it },
-                            onQ1Selected = { q1Distress = it },
-                            onQ2Selected = { q2Trigger = it },
-                            onQ3Selected = { q3Haptics = it },
-                            onQ4Selected = { q4Audio = it },
-                            onDeclineInterview = {
-                                logStore.saveLog(
-                                    SprintExperienceLog(
-                                        comfortableToTalk = false,
-                                        finalState = "User Declined Interview"
-                                    )
-                                )
-                                machine.submitCheckIn(CheckInResponse.BETTER)
-                                onExitToHome()
-                            },
-                            onInterviewCompleteComposed = { finalState ->
-                                q5State = finalState
-                                logStore.saveLog(
-                                    SprintExperienceLog(
-                                        comfortableToTalk = true,
-                                        distressLevel = q1Distress,
-                                        primaryTrigger = q2Trigger,
-                                        hapticsHelpful = q3Haptics,
-                                        audioComfort = q4Audio,
-                                        finalState = finalState,
-                                        alertSentToTrustedContacts = false
-                                    )
-                                )
-                                machine.submitCheckIn(CheckInResponse.BETTER)
-                                onExitToHome()
-                            },
-                            onInterviewCompleteDistressed = { finalState ->
-                                q5State = finalState
-                                if (!alertSent) {
-                                    alertSent = true
-                                    companionEngine.notifyCompanion(
-                                        "Anchor Alert: User completed a 1-minute grounding sprint but remains distressed and needs immediate support."
-                                    )
-                                }
-                                logStore.saveLog(
-                                    SprintExperienceLog(
-                                        comfortableToTalk = true,
-                                        distressLevel = q1Distress,
-                                        primaryTrigger = q2Trigger,
-                                        hapticsHelpful = q3Haptics,
-                                        audioComfort = q4Audio,
-                                        finalState = finalState,
-                                        alertSentToTrustedContacts = true
-                                    )
-                                )
-                                isCriticalMode = true
-                                machine.submitCheckIn(CheckInResponse.WORSE)
-                            }
-                        )
-                    }
                 }
+            }
+
+            // ── Dialogs ───────────────────────────────────────────────────
+            if (showConfirmAlert) {
+                ConfirmAlertDialog(
+                    onConfirm = {
+                        showConfirmAlert = false
+                        alertSent = true
+                        val phones = companionPrefs.getContacts().map { it.phoneNumber }
+                        companionEngine.sendAfterUserConfirm(
+                            contactPhones = phones,
+                            message = "Anchor: Your contact could use some quiet support right now."
+                        )
+                        logStore.saveLog(
+                            SprintExperienceLog(
+                                comfortableToTalk = true,
+                                finalState = "Still Distressed — Alert Sent",
+                                alertSentToTrustedContacts = true
+                            )
+                        )
+                        isCriticalMode = true
+                        machine.submitCheckIn(CheckInResponse.WORSE)
+                    },
+                    onDismiss = { showConfirmAlert = false }
+                )
             }
 
             if (showSafetyPlanDialog) {
@@ -436,12 +498,19 @@ fun SessionScreen(
     }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// BREATHING stage — breathing circle + comfort-tool selector chips
+// ──────────────────────────────────────────────────────────────────────────────
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BreathingStage(
+    selectedTool: ComfortTool,
+    onToolSelected: (ComfortTool) -> Unit,
     audioEngine: AudioDeliveryEngine,
     onSteadyClicked: () -> Unit
 ) {
-    var phaseText by remember { mutableStateOf("Breathe In…") }
+    var phaseText by remember { mutableStateOf("Breathe In\u2026") }
     var phaseSubtext by remember { mutableStateOf("Inhale slowly through your nose (4s)") }
 
     val infiniteTransition = rememberInfiniteTransition(label = "resonantBreathing")
@@ -460,23 +529,54 @@ private fun BreathingStage(
         label = "visualizerScale"
     )
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            phaseText = "Breathe In…"
-            phaseSubtext = "Inhale slowly (4s)"
-            audioEngine.speakWhisper("Breathe In")
-            delay(4000)
-            phaseText = "Breathe Out…"
-            phaseSubtext = "Exhale completely (6s)"
-            audioEngine.speakWhisper("Breathe Out")
-            delay(6000)
+    // Continuous breathing text cycle (visual only; audio handled by parent)
+    LaunchedEffect(selectedTool) {
+        if (selectedTool == ComfortTool.BREATHING) {
+            while (true) {
+                phaseText = "Breathe In\u2026"
+                phaseSubtext = "Inhale slowly (4s)"
+                delay(4000)
+                phaseText = "Breathe Out\u2026"
+                phaseSubtext = "Exhale completely (6s)"
+                delay(6000)
+            }
+        } else {
+            phaseText = selectedTool.label
+            phaseSubtext = selectedTool.description
         }
     }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(28.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
+        // ── Comfort tool selector chips ───────────────────────────────────
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            ComfortTool.entries.forEach { tool ->
+                FilterChip(
+                    selected = tool == selectedTool,
+                    onClick = { onToolSelected(tool) },
+                    label = {
+                        Text(
+                            text = tool.label,
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1
+                        )
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+        }
+
+        // ── Breathing visualizer ──────────────────────────────────────────
         Text(
             text = phaseText,
             style = MaterialTheme.typography.headlineMedium,
@@ -486,17 +586,17 @@ private fun BreathingStage(
 
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.size(230.dp)
+            modifier = Modifier.size(200.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(190.dp * scale)
+                    .size(170.dp * scale)
                     .clip(CircleShape)
                     .background(AnchorColors.current.tint)
             )
             Box(
                 modifier = Modifier
-                    .size(140.dp * scale)
+                    .size(120.dp * scale)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary)
             )
@@ -518,330 +618,357 @@ private fun BreathingStage(
     }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// FEEL BETTER stage — shown when the 30s timer expires
+// ──────────────────────────────────────────────────────────────────────────────
+
 @Composable
-private fun ConditionSelectionStage(
-    conditions: List<GroundingCondition>,
-    selectedId: String?,
-    onSelect: (GroundingCondition) -> Unit
+private fun FeelBetterStage(
+    onFeelingBetter: () -> Unit,
+    onStillFeelingIt: () -> Unit
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = "Identify Your Condition",
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+            text = "How are you feeling now?",
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
             textAlign = TextAlign.Center
         )
 
         Text(
-            text = "Select what best describes what you are experiencing (or default will be selected):",
-            style = MaterialTheme.typography.bodySmall,
+            text = "There\u2019s no wrong answer.",
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 6.dp)
+            textAlign = TextAlign.Center
         )
 
-        conditions.forEach { cond ->
-            val isSelected = cond.id == selectedId
-            OutlinedButton(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = { onSelect(cond) },
-                colors = if (isSelected) ButtonDefaults.outlinedButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ) else ButtonDefaults.outlinedButtonColors()
-            ) {
-                Text(
-                    text = cond.name,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                )
-            }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onFeelingBetter
+        ) {
+            Text("Better \u2014 I\u2019m okay")
+        }
+
+        OutlinedButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onStillFeelingIt
+        ) {
+            Text("Still feeling it")
         }
     }
 }
 
-@Composable
-private fun SpecializedExerciseStage(
-    condition: GroundingCondition,
-    audioEngine: AudioDeliveryEngine,
-    isUntimed: Boolean,
-    onComplete: () -> Unit
-) {
-    LaunchedEffect(condition) {
-        audioEngine.speakWhisper(condition.name + ". " + condition.instruction)
-    }
+// ──────────────────────────────────────────────────────────────────────────────
+// JOURNAL stage — optional ≤280-char in-memory note
+// ──────────────────────────────────────────────────────────────────────────────
 
+@Composable
+private fun JournalStage(
+    text: String,
+    onTextChange: (String) -> Unit,
+    showSkipNote: Boolean,
+    onSave: () -> Unit,
+    onSkip: () -> Unit,
+    onContinueFromNote: () -> Unit
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.primaryContainer
-        ) {
+        if (showSkipNote) {
+            // ── Skip note: importance of logging ──────────────────────────
             Text(
-                text = condition.name,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                text = "Logging helps you notice patterns over time \u2014 but it\u2019s entirely optional.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
             )
-        }
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = "Specialized Grounding Exercise",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                Text(
-                    text = condition.instruction,
-                    style = MaterialTheme.typography.titleLarge.copy(lineHeight = 30.sp),
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
-
-        if (isUntimed) {
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = onComplete
+                onClick = onContinueFromNote
             ) {
-                Text("Continue to Reflection")
+                Text("Continue")
             }
         } else {
+            // ── Journal entry ─────────────────────────────────────────────
             Text(
-                text = "Focus on the exercise while timer completes...",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "Want to note what happened?",
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                textAlign = TextAlign.Center
             )
+
+            Text(
+                text = "Even a few words can help you spot patterns later.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+
+            OutlinedTextField(
+                value = text,
+                onValueChange = onTextChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 120.dp),
+                placeholder = {
+                    Text(
+                        "What\u2019s on your mind?",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                },
+                supportingText = {
+                    Text(
+                        text = "${text.length} / 280",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.End,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (text.length > 260) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                shape = MaterialTheme.shapes.medium
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = onSkip
+                ) {
+                    Text("Skip")
+                }
+                Button(
+                    modifier = Modifier.weight(1f),
+                    onClick = onSave
+                ) {
+                    Text("Save")
+                }
+            }
         }
     }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// INCIDENT PICKER stage — select what happened from IncidentKind
+// ──────────────────────────────────────────────────────────────────────────────
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ExperienceInterviewStage(
-    step: Int,
-    onStepChange: (Int) -> Unit,
-    onQ1Selected: (String) -> Unit,
-    onQ2Selected: (String) -> Unit,
-    onQ3Selected: (String) -> Unit,
-    onQ4Selected: (String) -> Unit,
-    onDeclineInterview: () -> Unit,
-    onInterviewCompleteComposed: (String) -> Unit,
-    onInterviewCompleteDistressed: (String) -> Unit
+private fun IncidentPickerStage(
+    onSelect: (IncidentKind) -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        when (step) {
-            0 -> {
-                Text(
-                    text = "Anchor Sprint Complete",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = "Are you comfortable to talk about your experience right now?",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { onStepChange(1) }
-                ) {
-                    Text("Yes, I'm ready to reflect")
-                }
-                OutlinedButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onDeclineInterview
-                ) {
-                    Text("Not right now")
-                }
-            }
+        Text(
+            text = "What best describes what you experienced?",
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            textAlign = TextAlign.Center
+        )
 
-            1 -> {
-                Text(
-                    text = "Question 1 of 5",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "How intense was your emotional distress during this sprint?",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.Center
-                )
-                val options = listOf(
-                    "1 - Mild / Barely noticeable",
-                    "2 - Moderate / Uncomfortable",
-                    "3 - Strong / Intense",
-                    "4 - Severe / Overwhelming"
-                )
-                options.forEach { opt ->
-                    OutlinedButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            onQ1Selected(opt)
-                            onStepChange(2)
-                        }
-                    ) {
-                        Text(opt)
-                    }
-                }
-            }
+        Text(
+            text = "Pick the closest match \u2014 this helps us suggest what might help.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
 
-            2 -> {
+        IncidentKind.entries.forEach { kind ->
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { onSelect(kind) },
+                shape = MaterialTheme.shapes.medium
+            ) {
                 Text(
-                    text = "Question 2 of 5",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    text = kind.civilianLabel,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = "What was the main trigger or feeling before starting Anchor?",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.Center
-                )
-                val options = listOf(
-                    "Anxiety / Panic Attack",
-                    "Sensory Overload / Loud Noise",
-                    "Intrusive Memory / Flashback",
-                    "High Stress / Overwhelm",
-                    "Other / Prefer not to say"
-                )
-                options.forEach { opt ->
-                    OutlinedButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            onQ2Selected(opt)
-                            onStepChange(3)
-                        }
-                    ) {
-                        Text(opt)
-                    }
-                }
-            }
-
-            3 -> {
-                Text(
-                    text = "Question 3 of 5",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "Did the haptic vibration rhythm help bring your focus back?",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.Center
-                )
-                val options = listOf(
-                    "Very Helpful - Grounded me quickly",
-                    "Somewhat Helpful - Slowed my breathing",
-                    "Neutral - Didn't notice much",
-                    "Not Helpful - Distracting"
-                )
-                options.forEach { opt ->
-                    OutlinedButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            onQ3Selected(opt)
-                            onStepChange(4)
-                        }
-                    ) {
-                        Text(opt)
-                    }
-                }
-            }
-
-            4 -> {
-                Text(
-                    text = "Question 4 of 5",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "How comfortable was the voice/whisper guidance?",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.Center
-                )
-                val options = listOf(
-                    "Soothing & Private",
-                    "Clear & Reassuring",
-                    "Muted / Didn't use audio",
-                    "Distracting / Too loud"
-                )
-                options.forEach { opt ->
-                    OutlinedButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            onQ4Selected(opt)
-                            onStepChange(5)
-                        }
-                    ) {
-                        Text(opt)
-                    }
-                }
-            }
-
-            5 -> {
-                Text(
-                    text = "Question 5 of 5",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "How do you feel right now overall?",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.Center
-                )
-
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { onInterviewCompleteComposed("Fully Grounded & Calm") }
-                ) {
-                    Text("Fully Grounded & Calm")
-                }
-
-                OutlinedButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { onInterviewCompleteComposed("Slightly Better, Still Shaky") }
-                ) {
-                    Text("Slightly Better, Still Shaky")
-                }
-
-                OutlinedButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { onInterviewCompleteDistressed("Still Distressed / Need Support") },
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Still Distressed / Need Immediate Help")
-                }
             }
         }
     }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// RECOMMENDED stage — intervention list with difficulty + warnings
+// ──────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun RecommendedStage(
+    recommendations: List<Intervention>,
+    onFeelingBetter: () -> Unit,
+    onStillNeedHelp: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "Here are some things that might help",
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            textAlign = TextAlign.Center
+        )
+
+        Text(
+            text = "Try whichever feels right — you can stop at any time.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+
+        recommendations.forEach { intervention ->
+            val difficulty = difficultyFor(intervention)
+            val warning = warningFor(intervention)
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    // Title + difficulty badge
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = intervention.name,
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.weight(1f)
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = when (difficulty) {
+                                DifficultyLevel.GENTLE -> AnchorColors.current.ok.copy(alpha = 0.15f)
+                                DifficultyLevel.MODERATE -> AnchorColors.current.amber.copy(alpha = 0.15f)
+                            }
+                        ) {
+                            Text(
+                                text = difficulty.label,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = when (difficulty) {
+                                    DifficultyLevel.GENTLE -> AnchorColors.current.ok
+                                    DifficultyLevel.MODERATE -> AnchorColors.current.amber
+                                },
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            )
+                        }
+                    }
+
+                    // One-line trauma-informed warning
+                    Text(
+                        text = warning,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    )
+
+                    // Limitations (if any)
+                    intervention.limitations?.let { lim ->
+                        Text(
+                            text = lim,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // ── Exit / help buttons ───────────────────────────────────────────
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onFeelingBetter
+        ) {
+            Text("I\u2019m feeling better")
+        }
+
+        OutlinedButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onStillNeedHelp,
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
+        ) {
+            Text("Still need help")
+        }
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// CONFIRM ALERT dialog — user-authorized companion notification
+// ──────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun ConfirmAlertDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                "Alert your contacts?",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+            )
+        },
+        text = {
+            Text(
+                "A trusted person will get a message that you could use some support. They won\u2019t know any details.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("Send")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// CRITICAL EMERGENCY stage — modified: shows alert-sent status, no auto-send
+// ──────────────────────────────────────────────────────────────────────────────
+
 @Composable
 private fun CriticalEmergencyStage(
+    alertSent: Boolean,
     onCallHelpline: () -> Unit,
     onCallEmergency: () -> Unit,
     onOpenSafetyPlan: () -> Unit,
@@ -874,36 +1001,43 @@ private fun CriticalEmergencyStage(
         }
 
         Text(
-            text = "1-Minute Anchor Sprint Ended",
+            text = "Grounding session ended",
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center
         )
 
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f)),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f)),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Automated Trusted Contacts Alert Sent",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "You remained distressed after the 1-minute grounding sprint. An SMS alert has been dispatched to your trusted contacts.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+        if (alertSent) {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f)
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Alert sent to your contacts",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "A trusted person has been notified that you could use some support.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
 
         Button(
             onClick = onCallHelpline,
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError
+            ),
             shape = RoundedCornerShape(12.dp)
         ) {
             Text("Call Tele MANAS Helpline (14416)", fontWeight = FontWeight.Bold)
@@ -912,7 +1046,10 @@ private fun CriticalEmergencyStage(
         Button(
             onClick = onCallEmergency,
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            ),
             shape = RoundedCornerShape(12.dp)
         ) {
             Text("Dial Emergency (112)", fontWeight = FontWeight.Bold)
@@ -937,7 +1074,7 @@ private fun CriticalEmergencyStage(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Try Sprint Again", fontSize = 13.sp)
+                Text("Try Again", fontSize = 13.sp)
             }
 
             Button(
@@ -946,11 +1083,15 @@ private fun CriticalEmergencyStage(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("I'm Composed", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("I\u2019m Composed", fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Safety plan dialog
+// ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun SafetyPlanDialog(onDismiss: () -> Unit) {
