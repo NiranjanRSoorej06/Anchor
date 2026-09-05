@@ -27,8 +27,8 @@ class GuidedScriptsTest {
     // ── Structural invariants ──────────────────────────────────────────
 
     @Test
-    fun allContainsExactlySixScripts() {
-        assertEquals(8, GuidedScripts.ALL.size)
+    fun allContainsExactlyNineScripts() {
+        assertEquals(9, GuidedScripts.ALL.size)
     }
 
     @Test
@@ -84,6 +84,12 @@ class GuidedScriptsTest {
     fun breathingExhaleHasEightSteps() {
         val script = GuidedScripts.byId("breathing_exhale")!!
         assertEquals(8, script.steps.size)
+    }
+
+    @Test
+    fun breathing478SleepHasThirteenSteps() {
+        val script = GuidedScripts.byId("breathing_478_sleep")!!
+        assertEquals(13, script.steps.size)
     }
 
     @Test
@@ -198,6 +204,18 @@ class GuidedScriptsTest {
         }
         assertTrue(
             "Long exhale script must contain the caveat 'skip the pauses' (case-insensitive)",
+            hasCaveat
+        )
+    }
+
+    @Test
+    fun breathing478SleepContainsOpeningCaveat() {
+        val script = GuidedScripts.byId("breathing_478_sleep")!!
+        val hasCaveat = script.steps.any { step ->
+            step.text.contains("skip the pauses", ignoreCase = true)
+        }
+        assertTrue(
+            "4-7-8 sleep script must contain the caveat 'skip the pauses' (case-insensitive)",
             hasCaveat
         )
     }

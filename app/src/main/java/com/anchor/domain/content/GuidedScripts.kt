@@ -162,6 +162,30 @@ object GuidedScripts {
         )
     )
 
+    private val ScriptBreathing478Sleep = GuidedScript(
+        id = "breathing_478_sleep",
+        title = "4-7-8 breathing for sleep",
+        steps = listOf(
+            ScriptStep("A slow breath to wind down for sleep. If holding your breath feels wrong, skip the pauses and just breathe out slowly.", 8),
+            // Cycle 1
+            ScriptStep("Breathe in quietly through your nose for a count of four.", 4),
+            ScriptStep("Hold your breath gently for seven.", 7),
+            ScriptStep("Breathe out slowly through your mouth for a count of eight.", 8),
+            // Cycle 2
+            ScriptStep("In through your nose — two, three, four.", 4),
+            ScriptStep("Hold — two, three, four, five, six, seven.", 7),
+            ScriptStep("Out through your mouth — long and soft, to eight.", 8),
+            // Cycle 3
+            ScriptStep("In for four — let your body sink into the bed.", 4),
+            ScriptStep("Hold for seven — loose and easy.", 7),
+            ScriptStep("Out for eight — feel your shoulders drop.", 8),
+            // Cycle 4
+            ScriptStep("Last round. In for four.", 4),
+            ScriptStep("Hold for seven.", 7),
+            ScriptStep("Out for eight. Let your breathing settle back to its own rhythm now.", 8)
+        )
+    )
+
     private val ScriptPmrFull = GuidedScript(
         id = "pmr_full",
         title = "Muscle release",
@@ -259,6 +283,7 @@ object GuidedScripts {
         ScriptBreathingBox,
         ScriptBreathingCoherent,
         ScriptBreathingExhale,
+        ScriptBreathing478Sleep,
         ScriptPmrFull,
         ScriptVisualizationMonsoon,
         ScriptVisualizationTemple
