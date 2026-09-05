@@ -29,7 +29,7 @@ Flow:
 5. Safety phrase (record or bundled) + trusted contact (typed number, template preview) — both skippable
 6. Done → ANCHOR NOW
 Learning after: Better/Same/Worse only (1 tap) → `domain/personalization/PersonalizationScorer` → insight card ("X helped 4 out of 5 times", MIN_SESSIONS=3). No scales in acute path, no re-quizzing.
-Full flow spec: S0–S12 in `docs/onboarding-research.md` §5 — every screen skippable, safety plan defers to Settings, paths from 15s bare to 4–5 min full. PCL-5 presented as 4 cluster screens with break + halfway safeguard, score internal only.
+Full flow spec: S0–S12 in `docs/onboarding-research.md` §5 — every screen skippable, safety plan defers to Settings, paths from 15s bare to 4–5 min full. PCL-5 presented as 4 cluster screens with break + halfway safeguard, score internal only. Flow machine built: `domain/onboarding` (linear WELCOME→DONE, complete/skip record, restart; 14 tests). UI jumps stay in UI layer; onboarding UI itself NOT built.
 
 ## Post-SOS check-in (locked: model built, notification + UI on SDK machine)
 One gentle notification ~10–15 min after SOS (AlarmManager; discreet text
@@ -75,8 +75,8 @@ NOT built yet.
 Exercises: adapt public-domain/clinical protocols (5-4-3-2-1, breathing
 ratios, Jacobson PMR, sleep hygiene, coping statements, DBT paraphrase
 only — Guilford enforces), own wording always, never copy worksheets.
-24 bundled safety phrases + custom recordings (≤15s, present tense, no
-narrative clause, preview + confirm). You-are-not-alone order: crisis
+24 bundled safety phrases (`domain/content/SafetyPhraseBank`, 10 tests) + custom recordings (≤15s, present tense, no
+narrative clause, preview + confirm; `isAcceptable` guards text form). You-are-not-alone order: crisis
 helplines (offline) → Maps button (`geo:0,0?q=`, no permission needed,
 online-badged) → therapist directories → peer communities last with
 caveats ("browse when stable"). Spec: `docs/content-sources.md`.
