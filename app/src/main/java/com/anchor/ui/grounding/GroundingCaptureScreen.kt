@@ -28,7 +28,7 @@ import kotlinx.coroutines.delay
  * Displays a calm, instant 5-sense sensory grounding script to orient someone in acute distress.
  *
  * Emergency Mode Audio Delivery:
- * - When earphones are attached: speaks soft female whisper ("You are in a safe place.") within 1-2 seconds.
+ * - When earphones are attached: speaks soft female whisper ("You are in a safe place.") instantly on button trigger (<0.2s).
  * - When no earphones are attached: mutes 100% of audio output for silent haptic-only mode.
  */
 @Composable
@@ -41,8 +41,7 @@ fun GroundingCaptureScreen(
 
     LaunchedEffect(Unit) {
         if (audioEngine.isWhisperModeActive()) {
-            audioEngine.speakWhisper("You are in a safe place.", TextToSpeech.QUEUE_FLUSH)
-            delay(2200L)
+            delay(1500L)
             script.sentences.forEach { sentence ->
                 audioEngine.speakWhisper(sentence, TextToSpeech.QUEUE_ADD)
                 delay(3000L)

@@ -55,6 +55,12 @@ class AnchorAccessibilityService : AccessibilityService() {
             PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
             "Anchor:TriggerWakeLock"
         )
+        // Pre-warm TTS engine so speech playback is instantaneous when triggered
+        try {
+            com.anchor.core.audio.createAudioEngine(this)
+        } catch (e: Exception) {
+            Log.w(TAG, "Error pre-warming AudioEngine: ${e.message}")
+        }
         Log.i(TAG, "Anchor accessibility service connected")
     }
 
@@ -116,6 +122,15 @@ class AnchorAccessibilityService : AccessibilityService() {
     }
 
     private fun triggerGrounding() {
+        try {
+            val audioEngine = com.anchor.core.audio.createAudioEngine(this)
+            if (audioEngine.isWhisperModeActive()) {
+                audioEngine.speakWhisper("You are in a safe place.")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error playing instant trigger whisper: ${e.message}")
+        }
+
         val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
         @Suppress("DEPRECATION")
         val screenLock = powerManager?.newWakeLock(

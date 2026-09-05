@@ -32,6 +32,21 @@ interface AudioDeliveryEngine {
 }
 
 /**
+ * Singleton provider to keep TTS warm in memory 24/7 across the accessibility service
+ * and app activities for zero-latency speech playback.
+ */
+object AudioEngineProvider {
+    @Volatile
+    private var instance: AudioDeliveryEngine? = null
+
+    fun get(context: Context): AudioDeliveryEngine {
+        return instance ?: synchronized(this) {
+            instance ?: WhisperAudioEngine(context.applicationContext).also { instance = it }
+        }
+    }
+}
+
+/**
  * Production Android [AudioDeliveryEngine] implementation backed by [TextToSpeech]
  * and [AudioOutputDetector].
  */
@@ -46,7 +61,8 @@ class WhisperAudioEngine(
 
     private var tts: TextToSpeech? = TextToSpeech(context.applicationContext, this)
     private var isTtsReady = false
-    private val pendingSpeechQueue = mutableListOf<Pair<String, Int>>()
+    private var pendingSpeechText: String? = null
+    private var pendingQueueMode: Int = TextToSpeech.QUEUE_FLUSH
 
     override fun onInit(status: Int) {
         Log.i(TAG, "TTS onInit status=$status")
@@ -66,16 +82,13 @@ class WhisperAudioEngine(
                 tts?.setPitch(1.18f)
                 tts?.setSpeechRate(0.85f)
                 isTtsReady = true
-                Log.i(TAG, "Whisper TTS ready! Flushing ${pendingSpeechQueue.size} pending speech items")
+                Log.i(TAG, "Whisper TTS ready! Flushing pending speech if any")
 
-                // Immediately speak any phrase requested while TTS was initializing
-                synchronized(pendingSpeechQueue) {
-                    for ((text, mode) in pendingSpeechQueue) {
-                        if (isWhisperModeActive()) {
-                            speakInternal(text, mode)
-                        }
-                    }
-                    pendingSpeechQueue.clear()
+                // Immediately speak any phrase requested while TTS was starting
+                val textToSpeak = pendingSpeechText
+                if (textToSpeak != null && isWhisperModeActive()) {
+                    speakInternal(textToSpeak, pendingQueueMode)
+                    pendingSpeechText = null
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "Error configuring TTS: ${e.message}")
@@ -102,9 +115,8 @@ class WhisperAudioEngine(
 
         if (!isTtsReady || tts == null) {
             Log.d(TAG, "TTS initializing; queuing instant speech: $text")
-            synchronized(pendingSpeechQueue) {
-                pendingSpeechQueue.add(text to queueMode)
-            }
+            pendingSpeechText = text
+            pendingQueueMode = queueMode
             return
         }
 
@@ -126,9 +138,7 @@ class WhisperAudioEngine(
 
     override fun stop() {
         try {
-            synchronized(pendingSpeechQueue) {
-                pendingSpeechQueue.clear()
-            }
+            pendingSpeechText = null
             if (isTtsReady) {
                 tts?.stop()
             }
@@ -175,8 +185,8 @@ class DebugAudioEngine(
 }
 
 /**
- * Factory function to instantiate the system audio delivery engine.
+ * Factory function to instantiate the system audio delivery engine (pre-warmed singleton).
  */
 fun createAudioEngine(context: Context): AudioDeliveryEngine {
-    return WhisperAudioEngine(context.applicationContext)
+    return AudioEngineProvider.get(context)
 }
