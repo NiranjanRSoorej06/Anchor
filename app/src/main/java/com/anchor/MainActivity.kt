@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.anchor.devtools.DevHapticTestScreen
+import com.anchor.devtools.SessionStateTestScreen
 import com.anchor.ui.HomeScreen
 import com.anchor.ui.theme.AnchorTheme
 
@@ -13,7 +15,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AnchorTheme {
-                HomeScreen()
+                // TEMPORARY (Module 4 manual verification) — swap back to
+                // DevHapticTestScreen()/HomeScreen() and delete the devtools
+                // package once the real Anchor session screen lands.
+                SessionStateTestScreen()
+                // DevHapticTestScreen()
+                // HomeScreen()
             }
         }
     }

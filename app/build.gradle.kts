@@ -34,6 +34,14 @@ android {
         compose = true
     }
 
+    testOptions {
+        unitTests {
+            // Local unit tests run against the android.jar stub; without this,
+            // any call into it (e.g. android.util.Log) throws instead of no-op'ing.
+            isReturnDefaultValues = true
+        }
+    }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
@@ -59,4 +67,6 @@ dependencies {
     implementation("androidx.compose.material3:material3")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+    testImplementation("junit:junit:4.13.2")
 }
