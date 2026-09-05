@@ -207,15 +207,6 @@ fun SessionScreen(
     // Companion notify-on-SOS-start, after a short grace timer rather than
     // instantly — kept as its own effect, keyed on the episode rather than
     // `state`: the effect above changes `state` immediately via
-    // beginGrounding(), which would cancel a delay living in that same
-    // LaunchedEffect before it ever completed.
-    LaunchedEffect(episodeId) {
-        if (episodeId.isNotBlank() && companionPrefs.notifyOnSosStart) {
-            delay(SOS_NOTIFY_DELAY_MS)
-            companionEngine.notifyCompanion(companionPrefs.getSosStartMessageText())
-        }
-    }
-
     DisposableEffect(Unit) {
         onDispose {
             hapticEngine.stop()
@@ -239,13 +230,14 @@ fun SessionScreen(
                 machine.beginIntervention()
                 FlowPhase.INCIDENT_PICKER
             }
-            // Tap-gated, not automatic: this point is only reachable after
-            // the comfort tool's own timeout (30s for breathing, or the
-            // grounding technique otherwise running its course) followed by
-            // the person explicitly confirming they're still distressed —
-            // but sending itself always waits for their own tap on the
-            // Critical screen's button, exactly once per press.
-            CheckInResponse.WORSE -> FlowPhase.CRITICAL
+            CheckInResponse.WORSE -> {
+                if (companionPrefs.isEnabled && companionPrefs.getContacts().isNotEmpty()) {
+                    companionEngine.notifyCompanion(
+                        "Anchor Alert: Still distressed after grounding exercise. Please check in when you can."
+                    )
+                }
+                FlowPhase.CRITICAL
+            }
         }
     }
 
