@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,7 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
+import com.anchor.core.audio.AudioDeliveryEngine
+import com.anchor.core.audio.DebugAudioEngine
 import com.anchor.core.haptics.DebugHapticEngine
 import com.anchor.core.haptics.HapticEngine
 import com.anchor.core.haptics.HapticPatterns
@@ -32,20 +34,25 @@ import com.anchor.ui.theme.AnchorTheme
  * The real Anchor entry point. Per docs/vision.md's Non-negotiable #2:
  * "ANCHOR NOW is hero entry. Big one-tap button."
  *
- * The tap order matters and is deliberate: haptic fires first, session
- * state changes second, navigation third. Someone in acute distress feels
- * something *before* anything else happens — the same principle
- * SessionStateTestScreen already demonstrates, just for a real entry point
- * instead of a dev harness.
- *
- * No onboarding, no settings, no history here — none of that exists yet.
+ * Supports Dual-Mode Audio & Haptic Delivery:
+ * - When private earphones/earbuds are connected: whispers "You are in a safe place." in a soft female voice.
+ * - When no earphones are connected: mutes 100% of audio output for silent haptic mode.
  */
 @Composable
 fun HomeScreen(
     machine: SessionStateMachine,
     hapticEngine: HapticEngine,
+    audioEngine: AudioDeliveryEngine = DebugAudioEngine(),
     onEnterSession: () -> Unit
 ) {
+    val isWhisper = audioEngine.isWhisperModeActive()
+
+    LaunchedEffect(Unit) {
+        if (isWhisper) {
+            audioEngine.speakWhisper("You are in a safe place.")
+        }
+    }
+
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
@@ -55,6 +62,13 @@ fun HomeScreen(
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Text(
+                text = if (isWhisper) "🎧 Whisper Mode · Private Earbuds" else "🔇 Silent Haptic Mode · Zero Audio",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isWhisper) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -107,6 +121,7 @@ private fun HomeScreenPreview() {
         HomeScreen(
             machine = SessionStateMachine(),
             hapticEngine = DebugHapticEngine(),
+            audioEngine = DebugAudioEngine(),
             onEnterSession = {}
         )
     }

@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
                             Screen.HOME -> HomeScreen(
                                 machine = machine,
                                 hapticEngine = hapticEngine,
+                                audioEngine = audioEngine,
                                 onEnterSession = { launchScreen.value = Screen.SESSION }
                             )
                             Screen.SESSION -> SessionScreen(
