@@ -17,6 +17,17 @@ write all wording ourselves. Never copy handouts/worksheets verbatim
 - **Sleep hygiene:** Irish et al. 2015 checklist items; SF Gov CBT-I handout;
   Sleep Foundation. Concepts only, own checklist. Frame as
   psychoeducation, never treatment.
+- **Sleep diary:** field set (bedtime, sleep latency, awakenings, final wake,
+  out-of-bed time, quality, nightmare flag) and the two derived metrics
+  (total sleep time, sleep efficiency = TST / time-in-bed) are the CBT-I
+  standard — SF Gov CBT-I handout, Consensus Sleep Diary (Carney et al.
+  2012). Field labels and all copy are ours. Ships as `domain/sleep` +
+  `ui/tools/SleepScreen`. No sleep-restriction prescription is computed
+  (needs clinician titration) — see `evidence.md` §15.
+- **CBT-I psychoeducation:** `domain/content/SleepEducation` — "CBT-I is
+  first-line for chronic insomnia, delivered by a therapist" (AASM 2021,
+  doi:10.5664/jcsm.8986). Nightmares routed to professional care, IRT named
+  but never delivered (multi-session clinical treatment).
 - **Coping statements:** Beck/CPT/SIT categories; Mood Juice NHS examples
   ("I can deal with this", "These feelings will pass", "I'm safe now").
   Short phrases aren't copyrightable; write 15–20 across safety /

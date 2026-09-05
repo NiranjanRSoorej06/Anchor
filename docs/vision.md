@@ -84,7 +84,7 @@ NOT built yet.
 Exercises: adapt public-domain/clinical protocols (5-4-3-2-1, breathing
 ratios, Jacobson PMR, sleep hygiene, coping statements, DBT paraphrase
 only — Guilford enforces), own wording always, never copy worksheets.
-BUILT as data: `GuidedScripts` (8 scripts: +monsoon/temple visualizations with coach framing; 21 tests), `CopingStatements` (25, +NORMALIZE) + `SleepChecklist` (10 items; 10 tests), `MapsQueries` (3 presets; 4 tests). UI readers NOT built.
+BUILT as data: `GuidedScripts` (9 scripts: +monsoon/temple visualizations, +`breathing_478_sleep`; tests), `CopingStatements` (25, +NORMALIZE) + `SleepChecklist` (10 items; 10 tests), `MapsQueries` (3 presets; 4 tests). Most UI readers NOT built — exception: the **Sleep** tool (Tools hub) reads `SleepChecklist` + `breathing_478_sleep` and adds a CBT-I sleep diary (`domain/sleep`: `SleepEntry`/`SleepMetrics`/`SleepValidator`, total-sleep-time + sleep-efficiency, 7-night trends; `data/SleepLogStore`) and `domain/content/SleepEducation`. Psychoeducation only — no sleep-restriction prescription, no IRT, no reminders (`evidence.md` §15).
 24 bundled safety phrases (`domain/content/SafetyPhraseBank`, 10 tests) + custom recordings (≤15s, present tense, no
 narrative clause, preview + confirm; `isAcceptable` guards text form). You-are-not-alone order: crisis
 helplines (offline) → Maps button (`geo:0,0?q=`, no permission needed,

@@ -228,6 +228,10 @@ This is one of the most important safety distinctions in the whole design.
 | Dissociation deserves a separate pathway | VA assessment resources + NICE caution on computerized treatment | NICE NG116; VA National Center for PTSD |
 | Digital PTSD interventions are feasible | Internet-based guided self-help RCT | Lewis et al. 2017 — https://doi.org/10.1002/da.22645 |
 | Anchor shouldn't claim to replace PTSD treatment | Guidelines emphasize formal evidence-based treatment and clinical judgment | NICE NG116; VA/DoD CPG 2023 — https://www.healthquality.va.gov/guidelines/MH/ptsd/ |
+| A sleep diary is a legitimate self-tracking tool | The sleep diary is the standard baseline assessment in CBT-I; total sleep time and sleep efficiency are its core derived metrics | Irish et al. 2015 — https://doi.org/10.1016/j.smrv.2014.10.001 ; SF Gov CBT-I handout (see `docs/content-sources.md`) |
+| CBT-I is the right thing to point people toward | CBT-I is first-line for chronic insomnia and remains effective when insomnia co-occurs with PTSD | AASM 2021 clinical practice guideline — https://doi.org/10.5664/jcsm.8986 ; VA/DoD 2023 |
+| 4-7-8 / slow paced breathing before bed | Slow breathing (~4–6 breaths/min) acutely raises HRV and is a recognised self-calming technique; framed as a supportive habit, not treatment | NICE NG116 (self-calming); see `docs/exercise-evidence.md` "Paced breathing" |
+| Imagery rehearsal therapy is *named but not delivered* | IRT reduces nightmare frequency but is a multi-session clinician-led treatment, not a self-guided in-app exercise | JAMA RCT (Krakow 2001) — https://jamanetwork.com/journals/jama/fullarticle/194063 (see `docs/anchor_Symptom_Exercise_Evidence_table.md`) |
 
 ---
 
@@ -291,6 +295,46 @@ That last piece is a strong technical differentiator for a hackathon pitch: not 
 This gives a direct, defensible answer to the inevitable judge question — *"Where did this exercise come from?"* — traceable as:
 
 **Technique → clinical guideline/paper → evidence level → personalization rules.**
+
+---
+
+## 15. Sleep tool (Tools hub) — scope and framing
+
+Anchor's **Sleep** tool is self-tracking psychoeducation, nothing more:
+
+- **Sleep diary** (`domain/sleep/SleepEntry`): the user reports bedtime,
+  time to fall asleep, awakenings, final wake, and out-of-bed time each
+  morning. `SleepMetrics` derives **total sleep time** and **sleep
+  efficiency %** — the same two numbers a paper CBT-I diary produces.
+- **Trends**: 7-night rolling averages of those metrics. Shown to the user
+  so they can bring the pattern to a clinician.
+- **Wind-down**: the existing `SleepChecklist` habits plus the
+  `breathing_478_sleep` guided script.
+- **Learn** (`domain/content/SleepEducation`): names CBT-I as first-line
+  care and routes nightmares to professional help.
+
+**Deliberately excluded** (documented so it's clear the boundary was a
+choice, not an oversight):
+
+- **No sleep-restriction prescription.** Computing a personalised
+  time-in-bed window is a core CBT-I technique, but it requires weekly
+  clinician titration and can transiently worsen daytime sleepiness. Anchor
+  shows the efficiency number and stops there.
+- **No imagery rehearsal therapy.** See the claim-map row above.
+- **No reminders / nagging.** Consistent with `docs/exercise-evidence.md`.
+- **No diagnosis.** Efficiency thresholds are described as context, never as
+  a cut-off that means anything on its own.
+
+Sources: Irish, L.A., Kline, C.E., Gunn, H.E., Buysse, D.J., & Hall, M.H.
+(2015). The role of sleep hygiene in promoting public health: A review of
+empirical evidence. *Sleep Medicine Reviews, 22*, 23–36.
+https://doi.org/10.1016/j.smrv.2014.10.001 · Edinger, J.D., et al. (2021).
+Behavioral and psychological treatments for chronic insomnia disorder in
+adults: an AASM clinical practice guideline. *J Clin Sleep Med, 17*(2),
+255–262. https://doi.org/10.5664/jcsm.8986 · Krakow, B., et al. (2001).
+Imagery rehearsal therapy for chronic nightmares in sexual assault
+survivors with PTSD: a randomized controlled trial. *JAMA, 286*(5),
+537–545. https://jamanetwork.com/journals/jama/fullarticle/194063
 
 ---
 
