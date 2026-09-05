@@ -150,7 +150,16 @@ class WhisperAudioEngine(
         val earbudConnected = isWhisperModeActive()
         Log.i(TAG, "speakWhisper requested: '$text' (earbudsConnected=$earbudConnected, ttsReady=$isTtsReady)")
 
-        if (!isTtsReady || tts == null) {
+        if (tts == null) {
+            Log.d(TAG, "TTS instance was null; re-initializing engine for: $text")
+            isTtsReady = false
+            pendingSpeechText = text
+            pendingQueueMode = queueMode
+            tts = TextToSpeech(context.applicationContext, this)
+            return
+        }
+
+        if (!isTtsReady) {
             Log.d(TAG, "TTS initializing; queuing instant speech: $text")
             pendingSpeechText = text
             pendingQueueMode = queueMode

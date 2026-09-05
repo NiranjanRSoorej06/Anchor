@@ -40,10 +40,11 @@ fun GroundingCaptureScreen(
     val isWhisper = audioEngine.isWhisperModeActive()
 
     LaunchedEffect(Unit) {
-        audioEngine.speakWhisper("You are in a safe place.", TextToSpeech.QUEUE_FLUSH)
+        // Smoothly queue sensory grounding sentences after initial trigger safety phrase finishes
+        delay(2200L)
         script.sentences.forEach { sentence ->
             audioEngine.speakWhisper(sentence, TextToSpeech.QUEUE_ADD)
-            delay(3000L)
+            delay(4000L)
         }
     }
 
