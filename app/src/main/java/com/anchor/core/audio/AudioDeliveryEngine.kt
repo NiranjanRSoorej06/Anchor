@@ -10,7 +10,7 @@ import java.util.Locale
  * Dual-mode audio delivery engine boundary.
  *
  * If Bluetooth earbuds or headphones are connected:
- * - Speaks guided scripts in a quiet, private whisper into the user's ear.
+ * - Speaks guided scripts in a soft, private female whisper into the user's ear.
  *
  * If NO earbuds are connected:
  * - Mutes audio output completely (0% speaker sound) so the app operates in
@@ -20,8 +20,8 @@ interface AudioDeliveryEngine {
     /** Returns true if private earbuds/headphones are connected and whisper delivery is active. */
     fun isWhisperModeActive(): Boolean
 
-    /** Speaks [text] in quiet whisper delivery if earbuds are connected; mutes completely if not. */
-    fun speakWhisper(text: String)
+    /** Speaks [text] in a soft female whisper if earbuds are connected; mutes completely if not. */
+    fun speakWhisper(text: String, queueMode: Int = TextToSpeech.QUEUE_ADD)
 
     /** Stops any ongoing speech immediately. */
     fun stop()
@@ -52,14 +52,37 @@ class WhisperAudioEngine(
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.w(TAG, "US English TTS language not supported")
             } else {
-                // Calibrate TTS for quiet, soothing whisper cadence
-                tts?.setPitch(0.92f)
-                tts?.setSpeechRate(0.82f)
+                selectSoftFemaleVoice()
+                // Calibrate TTS for soft, soothing female whisper tone
+                tts?.setPitch(1.05f)
+                tts?.setSpeechRate(0.80f)
                 isTtsReady = true
-                Log.i(TAG, "Whisper TTS initialized cleanly")
+                Log.i(TAG, "Whisper TTS initialized cleanly with soft female voice")
             }
         } else {
             Log.w(TAG, "TTS initialization failed with status $status")
+        }
+    }
+
+    private fun selectSoftFemaleVoice() {
+        val ttsEngine = tts ?: return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                val femaleVoice = ttsEngine.voices?.find { voice ->
+                    val name = voice.name.lowercase()
+                    voice.locale.language == Locale.ENGLISH.language &&
+                        (name.contains("female") || name.contains("fem") || name.contains("sfg") || name.contains("wmn") || name.contains("woman") || name.contains("en-us-x-sfg"))
+                } ?: ttsEngine.voices?.find { voice ->
+                    voice.locale.language == Locale.ENGLISH.language && !voice.isNetworkConnectionRequired
+                }
+
+                if (femaleVoice != null) {
+                    ttsEngine.voice = femaleVoice
+                    Log.i(TAG, "Selected soft female voice: ${femaleVoice.name}")
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error selecting soft female voice: ${e.message}")
         }
     }
 
@@ -67,7 +90,7 @@ class WhisperAudioEngine(
         return detector.isPrivateHeadsetConnected()
     }
 
-    override fun speakWhisper(text: String) {
+    override fun speakWhisper(text: String, queueMode: Int) {
         // Essential Safety & Privacy rule: Mute 100% if no private earbuds are attached!
         if (!isWhisperModeActive()) {
             Log.d(TAG, "No earbuds connected — suppressing speaker audio (Silent Haptic Mode)")
@@ -82,10 +105,10 @@ class WhisperAudioEngine(
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "WhisperAudio_${System.currentTimeMillis()}")
+                tts?.speak(text, queueMode, null, "WhisperAudio_${System.currentTimeMillis()}")
             } else {
                 @Suppress("DEPRECATION")
-                tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null)
+                tts?.speak(text, queueMode, null)
             }
         } catch (e: Exception) {
             Log.w(TAG, "Failed to speak whisper: ${e.message}")
@@ -124,7 +147,7 @@ class DebugAudioEngine(
 
     override fun isWhisperModeActive(): Boolean = earbudConnected
 
-    override fun speakWhisper(text: String) {
+    override fun speakWhisper(text: String, queueMode: Int) {
         if (earbudConnected) {
             spokenPhrases.add(text)
         }

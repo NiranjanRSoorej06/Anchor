@@ -26,7 +26,7 @@ import com.anchor.domain.grounding.GroundingScriptBuilder
  * Displays a calm, instant 5-sense sensory grounding script to orient someone in acute distress.
  *
  * Supports Dual-Mode Audio Delivery:
- * - If earbuds are attached: speaks whisper audio into the earbud.
+ * - If earbuds are attached: speaks soft female whisper audio ("You are in a safe place.") into the earbud.
  * - If no earbuds are attached: mutes all sound for 100% silent haptic-only mode.
  */
 @Composable
@@ -39,6 +39,7 @@ fun GroundingCaptureScreen(
 
     LaunchedEffect(script) {
         if (isWhisper) {
+            audioEngine.speakWhisper("You are in a safe place.")
             script.sentences.forEach { sentence ->
                 audioEngine.speakWhisper(sentence)
             }
