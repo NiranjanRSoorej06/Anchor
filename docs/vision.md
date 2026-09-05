@@ -78,9 +78,13 @@ PTSD Coach ships US-only numbers; India gets nothing. Anchor bundles an
 India-ready Find Support directory (`docs/india-resources.md`): Tele MANAS
 **14416** default, 112 emergency, Vandrevala 9999666555 (incl. WhatsApp),
 NIMHANS, iCall, Sneha, Kashmir Lifeline, AASRA + therapist URL (badged
-offline-unavailable). Phone-first (all work offline by call), free-first
-ordering, language tags, regional priority. Numbers must be re-verified
-before release.
+offline-unavailable). Phone-first (all work offline by call).
+Directory only — we provide and integrate nothing: no booking, no accounts,
+no backend, no live clinic lookup. "Free-first" means free-to-call
+third-party helplines listed first, not free therapy from us. "Near you"
+for demo = curated static entries + directory URLs; live location lookup
+is stretch (permission-gated, optional). Pointing alone beats PTSD Coach's
+nothing. Numbers must be re-verified before release.
 
 ## Reading list (all agents read these, in order)
 - `docs/vision.md` (this file) — product + locks
