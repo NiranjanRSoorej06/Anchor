@@ -1,7 +1,8 @@
 # Anchor — Locked Vision (v1)
 
-> Single track for all agents. Codebase truth: `Anchor/` at `b8eb1e0` (M1–M5).
-> Planning truth: this file. Details live in `docs/` copies of legacy mds.
+> Single track for all agents. Codebase truth: repo HEAD (M1–M5 +
+> `domain/routine` + `domain/personalization`, 77 unit tests).
+> Planning truth: this file.
 
 ## One-liner
 Offline grounding button that works in airplane mode. Haptic in <300ms, no quizzes in the acute path, no backend.
@@ -25,7 +26,15 @@ Flow:
 4. Sensory prefs (sound on/off, vibration strength from `HapticCapabilities`, work-safe default)
 5. Safety phrase (record or bundled) + trusted contact (typed number, template preview) — both skippable
 6. Done → ANCHOR NOW
-Learning after: Better/Same/Worse only (1 tap) → PersonalizationScorer → insight card. No scales in acute path, no re-quizzing.
+Learning after: Better/Same/Worse only (1 tap) → `domain/personalization/PersonalizationScorer` → insight card ("X helped 4 out of 5 times", MIN_SESSIONS=3). No scales in acute path, no re-quizzing.
+
+## Custom routines (locked: model built, UI later)
+The USP: user builds calming routines (own audio/voice clips, haptics,
+breathing, pauses) and binds one to the panic button. Spec (`domain/routine/`,
+21 tests): `RoutineStep` = Haptic(patternId, intensity 0..1, durationSec) |
+Breathing(1..120s) | SafetyPhrase(clipId) | Pause(1..120s); `Routine` max 8
+steps, max 180s total; `RoutineValidator` collects all failures. Playback UI,
+recording UI, and panic-button binding are NOT built yet — model only.
 
 ## Session loop (M5 extended — HOLD on replace vs extend)
 `IDLE → ACTIVATING → GROUNDING → EASING → CHECK_IN → RECOVERY`, plus `ROUTING → INTERVENTION → SAFETY_STOP` (M5).
@@ -38,10 +47,9 @@ Candidates: Claude 90-sec vs team explainer vs plan.md script. Not locked — do
 - KILL for demo: Django/Channels backend, Deepgram+Groq+ElevenLabs chain, ambient upload, passive EMA, trauma-type diagnosis cards, Ed25519.
 - STRETCH only: on-device loudness → hardcoded whisper, brown-noise asset (labeled comfort), Purr/Marble, volume trigger.
 
-## Docs map (all agents read these)
-- `vision.md` (this file) — product + locks
-- `evidence.md` — copy of `Anchor/evidence.md`, clinical base
-- `tech-decisions.md` — from TECH_VALIDATION + oracle reviews + trigger research A
-- `roadmap.md` — from `Anchor/plan.md` phases + cut ladder
-- `complaints.md`, `teardown.md`, `trigger-research.md`, `codebase-status.md` — verbatim/trimmed legacy
-- Legacy loose `*.md` at repo root kept until team confirms, then removed.
+## Reading list (all agents read these, in order)
+- `docs/vision.md` (this file) — product + locks
+- `CLAUDE.md` — project rules, docs convention, cross-device workflow
+- `plan.md`, `evidence.md`, `M0-M4-CODEBASE-REFERENCE.md` (repo root) — execution plan, clinical base, codebase truth
+- `docs/teardown.md`, `docs/complaints.md`, `docs/synthesis.md` — why PTSD Coach loses
+- `docs/tech-validation.md`, `docs/trigger-research.md`, `docs/oracle-review.md`, `docs/oracle-rereview.md` — feasibility + kill/defer rationale
