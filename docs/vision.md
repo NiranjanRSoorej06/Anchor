@@ -69,9 +69,30 @@ OPEN: extend M5 incrementally vs rebuild full plan.md §15. No new states until 
 Tap ANCHOR NOW → haptic grounds you → check-in → SMS template → privacy
 close. All other scripts killed. UI build priority follows this order.
 
+## Demo lock (MUST genuinely work on the day)
+MUST (reliability path): ANCHOR NOW ✅ built · haptic grounding ✅ built ·
+check-in ✅ built · SMS template ❌ (~2–3h: pre-written templates via
+ACTION_SENDTO, no auto-send) · privacy close ❌ (~1h: end card + data
+statement, no deletion theater).
+PLUS (differentiators, cheap): Find Support India directory + regional
+routing ❌ (~8h per docs/near-you-research.md; manual-picker-only lite
+~2h fallback) · safety plan screen ❌ (model built; form UI ~3–4h) ·
+insight card ❌ (scorer built; ~1–2h).
+SEED, DON'T BUILD for demo: onboarding profile (spec S0–S12 exists;
+ship seeded profile; build flow only if MUST+PLUS done).
+CUT for demo: volume clutch, routine builder UI, voice recording,
+brown noise, Learn module, graphs.
+BORROW from PTSD Coach (content patterns only, own words + evidence
+labels — techniques like paced breathing, 5-4-3-2-1 grounding, PMR,
+sleep hygiene are standard clinical procedures; our E001–E009 already
+follows this pattern): exercise content shapes, Stanley-Brown structure
+(published protocol), SUDS concept (adapted to Better/Same/Worse).
+NEVER borrow: forced assessments, repeat reminders, crisis-line spam,
+veteran framing.
+
 ## Killed / deferred
 - KILL for demo: Django/Channels backend, Deepgram+Groq+ElevenLabs chain, ambient upload, passive EMA, trauma-type diagnosis cards, Ed25519.
-- STRETCH only: on-device loudness → hardcoded whisper, brown-noise asset (labeled comfort), Purr/Marble, volume trigger.
+- STRETCH order: volume clutch first (docs/clutch-research.md verdict — Nugon real but niche, Dictate claim debunked, needs pre-configured Pixel/Samsung, 5.5–9.5d; Tier1 spike, never demo-default) → on-device loudness whisper → brown noise (comfort-labeled) → Purr/Marble.
 
 ## India-first support (locked: directory spec, UI later)
 PTSD Coach ships US-only numbers; India gets nothing. Anchor bundles an
