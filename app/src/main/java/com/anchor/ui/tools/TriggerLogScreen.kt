@@ -139,9 +139,23 @@ fun TriggerLogScreen(onBack: () -> Unit) {
             HorizontalDivider()
 
             Text("Past entries (${entries.size})", style = MaterialTheme.typography.titleMedium)
-            LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(entries, key = { it.episodeId }) { entry ->
-                    TriggerLogEntryCard(entry)
+            if (entries.isEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Text(
+                        text = "No trigger entries logged yet. Select a trigger option or type a note above, then tap 'Save entry'.",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(entries, key = { it.episodeId }) { entry ->
+                        TriggerLogEntryCard(entry)
+                    }
                 }
             }
         }

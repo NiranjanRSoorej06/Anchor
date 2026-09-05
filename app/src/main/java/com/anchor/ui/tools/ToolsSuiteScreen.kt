@@ -94,9 +94,12 @@ fun ToolsSuiteScreen(onBack: () -> Unit) {
 
 @Composable
 private fun StandaloneTriggerLogTab() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val store = remember { com.anchor.data.TriggerLogStore(context) }
+    var persistentLogs by remember { mutableStateOf(store.all()) }
+
     var triggerText by remember { mutableStateOf("") }
     var intensity by remember { mutableStateOf("Moderate") }
-    val logs = remember { mutableStateListOf("Loud sudden noise in public space — Intensity: High", "Stressful work conversation — Intensity: Moderate") }
 
     Column(
         modifier = Modifier
@@ -111,6 +114,7 @@ private fun StandaloneTriggerLogTab() {
             value = triggerText,
             onValueChange = { triggerText = it },
             label = { Text("What triggered your distress?") },
+            placeholder = { Text("e.g. Sudden loud noise, crowded room, stressful argument") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -128,7 +132,21 @@ private fun StandaloneTriggerLogTab() {
         Button(
             onClick = {
                 if (triggerText.isNotBlank()) {
-                    logs.add(0, "$triggerText — Intensity: $intensity")
+                    val distressValue = when (intensity) {
+                        "Low" -> 3
+                        "Moderate" -> 6
+                        else -> 9
+                    }
+                    store.save(
+                        com.anchor.domain.followup.FollowUpCheckIn(
+                            episodeId = "manual-${java.util.UUID.randomUUID()}",
+                            triggerIds = setOf(triggerText.trim()),
+                            distress = distressValue,
+                            note = "Intensity: $intensity",
+                            completedAtMillis = System.currentTimeMillis()
+                        )
+                    )
+                    persistentLogs = store.all()
                     triggerText = ""
                 }
             },
@@ -139,10 +157,49 @@ private fun StandaloneTriggerLogTab() {
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Recent Trigger Entries (${logs.size}):", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-        logs.forEach { entry ->
-            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                Text(entry, modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall)
+        Text("Recent Trigger Entries (${persistentLogs.size}):", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+        if (persistentLogs.isEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Text(
+                    text = "No trigger entries logged yet. Type a trigger above and tap 'Save Trigger Entry'.",
+                    modifier = Modifier.padding(12.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            persistentLogs.forEach { entry ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT)
+                                .format(java.util.Date(entry.completedAtMillis)),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        if (entry.triggerIds.isNotEmpty()) {
+                            Text(
+                                text = entry.triggerIds.joinToString(", "),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        entry.note?.let {
+                            Text(text = it, style = MaterialTheme.typography.bodySmall)
+                        }
+                        entry.distress?.let {
+                            Text(text = "Distress Rating: $it/10", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
             }
         }
     }
