@@ -105,40 +105,28 @@ class WhisperAudioEngine(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 val voices = ttsEngine.voices
                 if (!voices.isNullOrEmpty()) {
-                    val femaleVoice = voices
-                        .filter { voice ->
-                            val lang = voice.locale.language
-                            (lang == Locale.ENGLISH.language || lang == "en") &&
-                                !voice.isNetworkConnectionRequired &&
-                                voice.features?.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) != true
-                        }
-                        .sortedWith(
-                            compareByDescending<android.speech.tts.Voice> { voice ->
-                                var score = 0
-                                val name = voice.name.lowercase()
-                                if (name.contains("female") || name.contains("fem") ||
-                                    name.contains("sfg") || name.contains("wmn") ||
-                                    name.contains("woman") || name.contains("en-us-x-sfg")) {
-                                    score += 100
-                                }
-                                if (voice.quality == android.speech.tts.Voice.QUALITY_VERY_HIGH) score += 50
-                                else if (voice.quality == android.speech.tts.Voice.QUALITY_HIGH) score += 30
-                                else if (voice.quality == android.speech.tts.Voice.QUALITY_NORMAL) score += 10
-                                score
-                            }
-                        )
-                        .firstOrNull() ?: voices.find { voice ->
-                        voice.locale.language == Locale.ENGLISH.language && !voice.isNetworkConnectionRequired
+                    val installedVoices = voices.filter { voice ->
+                        val lang = voice.locale.language
+                        (lang == Locale.ENGLISH.language || lang == "en") &&
+                            !voice.isNetworkConnectionRequired &&
+                            voice.features?.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) != true
                     }
+
+                    // Prefer high quality installed female voice, but avoid uninstalled network fonts
+                    val femaleVoice = installedVoices.find { voice ->
+                        val name = voice.name.lowercase()
+                        (name.contains("female") || name.contains("fem") || name.contains("woman")) &&
+                            !name.contains("sfg")
+                    } ?: installedVoices.firstOrNull()
 
                     if (femaleVoice != null) {
                         ttsEngine.voice = femaleVoice
-                        Log.i(TAG, "Selected soothing female voice: ${femaleVoice.name}")
+                        Log.i(TAG, "Selected TTS voice: ${femaleVoice.name}")
                     }
                 }
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Error selecting soft female voice: ${e.message}")
+            Log.w(TAG, "Error selecting female voice: ${e.message}")
         }
     }
 
