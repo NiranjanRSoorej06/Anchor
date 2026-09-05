@@ -182,6 +182,7 @@ Pincode beats GPS: user types 6-digit PIN → first-2-digit state table
 - `docs/near-you-research.md` — near-you verdict (region-mapped static, no live POIs)
 - `docs/ptsd-care-india-map.md` — PIN routing table + 20 institutions + card taxonomy
 - `docs/content-sources.md` — exercise protocols, phrase bank, communities, Maps intent
+- `docs/ptsdcoach-online-brief.md` — 17 tools, transcripts, TTS options, top-5 takeaways
 - `docs/demo-plan.md` — THE demo: locked feature list, fake cards, 90-sec script (share with SDK machine)
 - `docs/ptsd-coach-evidence.md` — trials, attrition, flaws (nice ≠ retained; our wedge)
 - `docs/app-literature-suggestions.md` — authors' own recommendations per paper + top-10 synthesis + our gaps
