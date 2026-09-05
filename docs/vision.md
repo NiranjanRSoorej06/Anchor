@@ -12,7 +12,7 @@ Offline grounding button that works in airplane mode. Haptic in <300ms, no quizz
 2. **ANCHOR NOW is hero entry.** Big one-tap button. Volume triple-press DEFERRED (button-first, per team lock).
 3. **Offline-first, deterministic.** No network, no LLM/STT/TTS at runtime. Same inputs → same output.
 4. **Privacy.** No trauma narrative field, no ambient audio upload, no diagnosis. Ever.
-5. **Safety filter overrides everything.** Dissociation → separate pathway, WORSE → SAFETY_STOP, no auto-dial/SMS.
+5. **Safety filter overrides everything.** `domain/safety` built (18 tests): `permits()` enforces SF1/SF2/SF4/SF6/SF8 as hard vetoes, `fallback()` guarantees SF7 never-empty screen; SF3 owned by `SessionStateMachine`, SF5 by UI layer. Dissociation → separate pathway, WORSE → SAFETY_STOP, no auto-dial/SMS.
 6. **Safety phrase ships.** User-recorded (MediaRecorder) + bundled fallback, <300ms playback.
 7. **Dignity SMS via intent.** Pre-written templates ("rough moment, don't need you to do anything…") through `ACTION_SENDTO`. No Ed25519 for demo.
 8. **Safety plan ships.** Stanley-Brown 6-step plan (`domain/safetyplan` model + validator built), user-entered text only, display-only — no auto-dial, no auto-SMS. UI later.
