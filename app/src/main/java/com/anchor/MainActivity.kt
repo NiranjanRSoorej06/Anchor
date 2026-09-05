@@ -20,20 +20,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.anchor.core.audio.createAudioEngine
 import com.anchor.core.haptics.createHapticEngine
-import com.anchor.devtools.DevHapticTestScreen
-import com.anchor.devtools.FindSupportScreen
-import com.anchor.devtools.RoutingLabScreen
-import com.anchor.devtools.SessionStateTestScreen
 import com.anchor.devtools.ThemeSwitcher
-import com.anchor.devtools.ToolsLibraryScreen
 import com.anchor.domain.session.SessionStateMachine
 import com.anchor.ui.HomeScreen
+import com.anchor.ui.anchor.EditAnchorScreen
 import com.anchor.ui.grounding.GroundingCaptureScreen
 import com.anchor.ui.session.SessionScreen
+import com.anchor.ui.support.GetSupportScreen
+import com.anchor.ui.symptoms.ManageSymptomsScreen
 import com.anchor.ui.theme.AnchorTheme
 import com.anchor.ui.theme.ThemeVariant
+import com.anchor.ui.tools.ToolsSuiteScreen
 
-private enum class Screen { HOME, SESSION, GROUNDING, SUPPORT, TOOLS, COMPANION }
+private enum class Screen { HOME, SESSION, GROUNDING, MANAGE_SYMPTOMS, TOOLS, SUPPORT, EDIT_ANCHOR, COMPANION }
 
 class MainActivity : ComponentActivity() {
 
@@ -62,7 +61,7 @@ class MainActivity : ComponentActivity() {
 
             val context = LocalContext.current
             val machine = remember { SessionStateMachine() }
-            val hapticEngine = remember { com.anchor.core.haptics.createHapticEngine(context) }
+            val hapticEngine = remember { createHapticEngine(context) }
             val audioEngine = remember { createAudioEngine(context) }
 
             AnchorTheme(variant = themeVariant) {
@@ -81,8 +80,10 @@ class MainActivity : ComponentActivity() {
                                 hapticEngine = hapticEngine,
                                 audioEngine = audioEngine,
                                 onEnterSession = { launchScreen.value = Screen.SESSION },
-                                onFindSupport = { launchScreen.value = Screen.SUPPORT },
+                                onManageSymptoms = { launchScreen.value = Screen.MANAGE_SYMPTOMS },
                                 onTools = { launchScreen.value = Screen.TOOLS },
+                                onFindSupport = { launchScreen.value = Screen.SUPPORT },
+                                onEditAnchor = { launchScreen.value = Screen.EDIT_ANCHOR },
                                 onCompanionMode = { launchScreen.value = Screen.COMPANION }
                             )
                             Screen.SESSION -> SessionScreen(
@@ -95,20 +96,26 @@ class MainActivity : ComponentActivity() {
                                 audioEngine = audioEngine,
                                 onDone = { launchScreen.value = Screen.HOME }
                             )
-                            Screen.SUPPORT -> FindSupportScreen()
-                            Screen.TOOLS -> ToolsLibraryScreen()
+                            Screen.MANAGE_SYMPTOMS -> ManageSymptomsScreen(
+                                onBack = { launchScreen.value = Screen.HOME },
+                                onNeedHelp = { launchScreen.value = Screen.SUPPORT }
+                            )
+                            Screen.TOOLS -> ToolsSuiteScreen(
+                                onBack = { launchScreen.value = Screen.HOME }
+                            )
+                            Screen.SUPPORT -> GetSupportScreen(
+                                onBack = { launchScreen.value = Screen.HOME }
+                            )
+                            Screen.EDIT_ANCHOR -> EditAnchorScreen(
+                                onBack = { launchScreen.value = Screen.HOME },
+                                onSave = { tool, audio ->
+                                    // Settings saved
+                                }
+                            )
                             Screen.COMPANION -> com.anchor.ui.companion.CompanionModeScreen(
                                 onBack = { launchScreen.value = Screen.HOME }
                             )
                         }
-
-                        // Dev tooling — still reachable by swapping the line above
-                        // for manual verification. Not part of the real app flow.
-                        // SessionStateTestScreen()
-                        // RoutingLabScreen()
-                        // DevHapticTestScreen()
-                        // FindSupportScreen()
-                        // ToolsLibraryScreen()
                     }
                 }
             }

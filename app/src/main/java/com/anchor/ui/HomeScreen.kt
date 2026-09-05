@@ -13,11 +13,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -38,23 +41,21 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anchor.core.audio.AudioDeliveryEngine
 import com.anchor.core.audio.DebugAudioEngine
-import com.anchor.core.haptics.DebugHapticEngine
 import com.anchor.core.haptics.HapticEngine
-import com.anchor.core.haptics.HapticPatterns
 import com.anchor.core.logging.SprintLogStore
 import com.anchor.domain.session.SessionStateMachine
-import com.anchor.ui.theme.AnchorTheme
 
 /**
- * The real Anchor entry point. Per docs/vision.md's Non-negotiable #2:
- * "ANCHOR NOW is hero entry. Big one-tap button."
+ * Anchor Production Home Screen — Redesigned 3-Card Architecture.
  *
- * Supports Dual-Mode Audio & Haptic Delivery and Dashboard Reflection Logs viewer.
+ * Hero SOS Button + 3 Polished Category Cards:
+ * 1. Manage Symptoms
+ * 2. Tools
+ * 3. Get Support
  */
 @Composable
 fun HomeScreen(
@@ -62,8 +63,10 @@ fun HomeScreen(
     hapticEngine: HapticEngine,
     audioEngine: AudioDeliveryEngine = DebugAudioEngine(),
     onEnterSession: () -> Unit,
-    onFindSupport: () -> Unit,
+    onManageSymptoms: () -> Unit,
     onTools: () -> Unit,
+    onFindSupport: () -> Unit,
+    onEditAnchor: () -> Unit,
     onCompanionMode: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -75,57 +78,108 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = if (isWhisper) "Whisper Mode · Private Earbuds" else "Speaker Mode · Soothing Voice",
-                style = MaterialTheme.typography.labelSmall,
-                color = if (isWhisper) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+            // Mode Status Bar
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.padding(top = 4.dp)
             ) {
-                AnchorNowButton {
-                    machine.start()
-                    onEnterSession()
-                }
+                Text(
+                    text = if (isWhisper) "Whisper Mode · Private Earbuds" else "Speaker Mode · Triple Volume Tap Active",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
             }
 
-            Column(
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // HERO SECTION: Big Blue ANCHOR NOW SOS Button
+            AnchorNowButton {
+                machine.start()
+                onEnterSession()
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // SECTION HEADER: 3 Core Features
+            Text(
+                text = "ANCHOR RECOVERY HUB",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // CARD 1: Manage Symptoms
+            CategoryCard(
+                title = "Manage Symptoms",
+                subtitle = "Evidence-backed exercises tailored to your current distress type",
+                badgeText = "Research-Based",
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                onClick = onManageSymptoms
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // CARD 2: Tools
+            CategoryCard(
+                title = "Tools Suite",
+                subtitle = "Trigger logger, journal notes, medication tracker & micro-goals",
+                badgeText = "5 Tools",
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                onClick = onTools
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // CARD 3: Get Support
+            CategoryCard(
+                title = "Get Support",
+                subtitle = "Pincode geo-maps, 24/7 helplines, communities & companion SMS",
+                badgeText = "24/7 Helplines",
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                onClick = onFindSupport
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // BOTTOM CONTROL ROW: Edit Anchor & Reflection Logs
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
+                OutlinedButton(
+                    onClick = onEditAnchor,
+                    modifier = Modifier.weight(1f)
                 ) {
-                    OutlinedButton(onClick = onFindSupport) { Text("Find Support") }
-                    OutlinedButton(onClick = onTools) { Text("Tools") }
-                    OutlinedButton(onClick = onCompanionMode) { Text("Companion") }
+                    Text("Edit Anchor", fontSize = 12.sp)
                 }
 
                 OutlinedButton(
                     onClick = { showLogsDialog = true },
-                    modifier = Modifier.fillMaxWidth(0.9f)
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text("Reflection Logs")
+                    Text("Reflection Logs", fontSize = 12.sp)
                 }
             }
 
+            Spacer(modifier = Modifier.height(12.dp))
+
             Text(
-                text = "Not a replacement for professional care · works offline",
+                text = "Not a replacement for professional care · Works 100% offline",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -142,9 +196,9 @@ fun HomeScreen(
 private fun AnchorNowButton(onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .size(236.dp)
+            .size(210.dp)
             .shadow(
-                elevation = 20.dp,
+                elevation = 18.dp,
                 shape = CircleShape,
                 ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
@@ -154,13 +208,74 @@ private fun AnchorNowButton(onClick: () -> Unit) {
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "ANCHOR\nNOW",
-            color = MaterialTheme.colorScheme.onPrimary,
-            fontWeight = FontWeight.Bold,
-            fontSize = 22.sp,
-            textAlign = TextAlign.Center
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "ANCHOR\nNOW",
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                textAlign = TextAlign.Center,
+                lineHeight = 26.sp
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "TAP FOR SOS",
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 1.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun CategoryCard(
+    title: String,
+    subtitle: String,
+    badgeText: String,
+    containerColor: androidx.compose.ui.graphics.Color,
+    contentColor: androidx.compose.ui.graphics.Color,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        onClick = onClick
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor
+                )
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = contentColor.copy(alpha = 0.15f)
+                ) {
+                    Text(
+                        text = badgeText,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = contentColor,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = contentColor.copy(alpha = 0.85f)
+            )
+        }
     }
 }
 
@@ -183,80 +298,40 @@ private fun SprintLogsViewerDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(350.dp)
+                    .height(280.dp)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 if (logs.isEmpty()) {
                     Text(
-                        text = "No sprint experience logs recorded yet.",
+                        text = "No experience logs stored yet. Complete a 1-minute sprint to record your reflection.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 24.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
-                    logs.forEach { item ->
+                    logs.forEach { log ->
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = if (item.alertSentToTrustedContacts)
-                                    MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f)
-                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                            ),
-                            border = BorderStroke(
-                                1.dp,
-                                if (item.alertSentToTrustedContacts)
-                                    MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
-                                else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
                             )
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = item.timestamp,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Surface(
-                                        shape = RoundedCornerShape(6.dp),
-                                        color = if (item.alertSentToTrustedContacts)
-                                            MaterialTheme.colorScheme.errorContainer
-                                        else MaterialTheme.colorScheme.primaryContainer
-                                    ) {
-                                        Text(
-                                            text = item.finalState ?: "Completed",
-                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                            color = if (item.alertSentToTrustedContacts)
-                                                MaterialTheme.colorScheme.onErrorContainer
-                                            else MaterialTheme.colorScheme.onPrimaryContainer,
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                        )
-                                    }
-                                }
-
-                                if (item.comfortableToTalk) {
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    item.distressLevel?.let { Text("Distress: $it", style = MaterialTheme.typography.bodySmall) }
-                                    item.primaryTrigger?.let { Text("Trigger: $it", style = MaterialTheme.typography.bodySmall) }
-                                    item.hapticsHelpful?.let { Text("Haptics: $it", style = MaterialTheme.typography.bodySmall) }
-                                    item.audioComfort?.let { Text("Audio: $it", style = MaterialTheme.typography.bodySmall) }
-                                } else {
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text("Reflection declined by user", style = MaterialTheme.typography.bodySmall)
-                                }
-
-                                if (item.alertSentToTrustedContacts) {
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "SMS Alert dispatched to Trusted Contacts",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = MaterialTheme.colorScheme.error
-                                    )
-                                }
+                                Text(
+                                    text = log.timestamp,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Distress Level: ${log.distressLevel ?: "Unrated"}",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                                Text(
+                                    text = "State After Sprint: ${log.finalState ?: "Unrecorded"}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     }
@@ -270,30 +345,13 @@ private fun SprintLogsViewerDialog(
         },
         dismissButton = {
             if (logs.isNotEmpty()) {
-                TextButton(
-                    onClick = {
-                        logStore.clearLogs()
-                        logs = emptyList()
-                    }
-                ) {
-                    Text("Clear Logs", color = MaterialTheme.colorScheme.error)
+                TextButton(onClick = {
+                    logStore.clearLogs()
+                    logs = emptyList()
+                }) {
+                    Text("Clear History", color = MaterialTheme.colorScheme.error)
                 }
             }
         }
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun HomeScreenPreview() {
-    AnchorTheme {
-        HomeScreen(
-            machine = SessionStateMachine(),
-            hapticEngine = DebugHapticEngine(),
-            audioEngine = DebugAudioEngine(),
-            onEnterSession = {},
-            onFindSupport = {},
-            onTools = {}
-        )
-    }
 }
