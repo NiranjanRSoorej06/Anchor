@@ -16,6 +16,7 @@ Offline grounding button that works in airplane mode. Haptic in <300ms, no quizz
 6. **Safety phrase ships.** User-recorded (MediaRecorder) + bundled fallback, <300ms playback.
 7. **Dignity SMS via intent.** Pre-written templates ("rough moment, don't need you to do anything…") through `ACTION_SENDTO`. No Ed25519 for demo.
 8. **Safety plan ships.** Stanley-Brown 6-step plan (`domain/safetyplan` model + validator built), user-entered text only, display-only — no auto-dial, no auto-SMS. UI later.
+9. **Persistence: DataStore + JSON, on-device only.** Profile, routines, episodes, safety plan. Matches the `EpisodeStore` interface; SDK machine implements.
 
 ## Onboarding (locked: one-time quiz OK, never repeated)
 One-time structured quiz at onboarding is FINE. Complaint was repeated quizzes, not onboarding. Rule: quiz once → tool becomes functional, never nags again.
@@ -28,6 +29,7 @@ Flow:
 5. Safety phrase (record or bundled) + trusted contact (typed number, template preview) — both skippable
 6. Done → ANCHOR NOW
 Learning after: Better/Same/Worse only (1 tap) → `domain/personalization/PersonalizationScorer` → insight card ("X helped 4 out of 5 times", MIN_SESSIONS=3). No scales in acute path, no re-quizzing.
+Full flow spec: S0–S12 in `docs/onboarding-research.md` §5 — every screen skippable, safety plan defers to Settings, paths from 15s bare to 4–5 min full. PCL-5 presented as 4 cluster screens with break + halfway safeguard, score internal only.
 
 ## Custom routines (locked: model built, UI later)
 The USP: user builds calming routines (own audio/voice clips, haptics,
@@ -36,6 +38,13 @@ breathing, pauses) and binds one to the panic button. Spec (`domain/routine/`,
 Breathing(1..120s) | SafetyPhrase(clipId) | Pause(1..120s); `Routine` max 8
 steps, max 180s total; `RoutineValidator` collects all failures. Playback UI,
 recording UI, and panic-button binding are NOT built yet — model only.
+
+## Panic button (LOCKED: medical default, user-editable)
+Ships a medically-based default sequence — E007 tactile anchor →
+E004 paced breathing → check-in — that the user can edit (reorder, toggle,
+duration via `RoutineValidator`; voice-recording builder is Tier1, not
+demo). Answers "allow edits to it": yes, lite editor, no audio recording
+for the demo.
 
 ## Routing + catalog (locked: models built, wiring later)
 `domain/content`: 9 pre-authored interventions E001–E009 per plan.md §8.3
@@ -56,8 +65,9 @@ NOT built yet.
 `IDLE → ACTIVATING → GROUNDING → EASING → CHECK_IN → RECOVERY`, plus `ROUTING → INTERVENTION → SAFETY_STOP` (M5).
 OPEN: extend M5 incrementally vs rebuild full plan.md §15. No new states until team unblocks.
 
-## Demo story (OPEN)
-Candidates: Claude 90-sec vs team explainer vs plan.md script. Not locked — do not build demo screens to any script yet.
+## Demo story (LOCKED: reliability)
+Tap ANCHOR NOW → haptic grounds you → check-in → SMS template → privacy
+close. All other scripts killed. UI build priority follows this order.
 
 ## Killed / deferred
 - KILL for demo: Django/Channels backend, Deepgram+Groq+ElevenLabs chain, ambient upload, passive EMA, trauma-type diagnosis cards, Ed25519.
