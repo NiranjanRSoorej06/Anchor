@@ -159,7 +159,7 @@ class SafetyFilterTest {
     // ── SF6: Wrong-state exclusion ─────────────────────────────────────
 
     @Test
-    fun `SF6 - candidate for PANICKY/HYPER_ALERT excluded in FROZEN`() {
+    fun `SF6 - candidate for PANICKY or HYPER_ALERT excluded in FROZEN`() {
         assertFalse(
             "SF6 should veto a candidate whose allowedStates excludes FROZEN",
             SafetyFilter.permits(breathingHaptic, CurrentState.FROZEN, fullProfile)

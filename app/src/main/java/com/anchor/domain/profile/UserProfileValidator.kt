@@ -64,6 +64,8 @@ object UserProfileValidator {
                         "must match ^\\+?[0-9 ]{7,}\$ (digits/spaces, " +
                         "optional leading +, minimum 7 characters)"
                 )
+            } else {
+                Unit
             }
         }
 
@@ -77,6 +79,8 @@ object UserProfileValidator {
                         "must match ^\\+?[0-9 ]{7,}\$ (digits/spaces, " +
                         "optional leading +, minimum 7 characters)"
                 )
+            } else {
+                Unit
             }
         }
 
