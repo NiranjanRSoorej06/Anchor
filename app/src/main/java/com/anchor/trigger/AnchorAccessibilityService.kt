@@ -116,12 +116,6 @@ class AnchorAccessibilityService : AccessibilityService() {
     }
 
     private fun triggerGrounding() {
-        try {
-            com.anchor.core.haptics.createHapticEngine(this).play(com.anchor.core.haptics.HapticPatterns.DOUBLE_PULSE)
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to play trigger haptic: ${e.message}")
-        }
-
         val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
         @Suppress("DEPRECATION")
         val screenLock = powerManager?.newWakeLock(
