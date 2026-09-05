@@ -106,6 +106,25 @@ unless there is a clear reason it improves the MVP.
 
 Potentially sensitive user information should remain local whenever practical.
 
+## Knowledge / Docs Convention
+
+All shared knowledge lives in `/docs` inside this repo so every agent
+(human or AI, any session) works from the same track.
+
+- `docs/vision.md` is the single source of truth for product decisions.
+  Code is truth for behavior; vision.md is truth for intent.
+- Research and decision records live alongside it: `complaints.md`,
+  `synthesis.md`, `teardown.md`, `tech-validation.md`,
+  `trigger-research.md`, `oracle-review.md`, `oracle-rereview.md`.
+- Root-level `plan.md`, `evidence.md`, `M0-M4-CODEBASE-REFERENCE.md`
+  remain the planning/evidence/codebase ground truth; do not duplicate
+  them into `/docs`.
+- Put every new shared doc in `/docs`. Never leave loose `.md` files at
+  the repo root or in home directories. A loose md is a forked context;
+  forked contexts are how teams rebuild the same disagreement twice.
+- When a doc is superseded (merged into vision or a decision record),
+  delete it. History lives in git, not in `archive/` or `*.legacy.md`.
+
 ## Development Rules
 
 Before implementing a substantial feature:
