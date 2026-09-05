@@ -15,12 +15,13 @@ Offline grounding button that works in airplane mode. Haptic in <300ms, no quizz
 5. **Safety filter overrides everything.** Dissociation → separate pathway, WORSE → SAFETY_STOP, no auto-dial/SMS.
 6. **Safety phrase ships.** User-recorded (MediaRecorder) + bundled fallback, <300ms playback.
 7. **Dignity SMS via intent.** Pre-written templates ("rough moment, don't need you to do anything…") through `ACTION_SENDTO`. No Ed25519 for demo.
+8. **Safety plan ships.** Stanley-Brown 6-step plan (`domain/safetyplan` model + validator built), user-entered text only, display-only — no auto-dial, no auto-SMS. UI later.
 
 ## Onboarding (locked: one-time quiz OK, never repeated)
 One-time structured quiz at onboarding is FINE. Complaint was repeated quizzes, not onboarding. Rule: quiz once → tool becomes functional, never nags again.
 Allowed once: PCL-5 (20 items, free, validated) as baseline + functional prefs below. No ITQ/DES at onboarding (labeling + length). No free-text trauma description + classification (diagnosis + re-traumatization + determinism risk).
 Flow:
-1. PCL-5 once (baseline, skippable, stored on-device only, never re-asked unless user opens Settings > Progress)
+1. PCL-5 once (`domain/assessment`: `Pcl5Catalog` 20 items + `Pcl5Scorer`, cutoff 31, screening-only KDoc; skippable, on-device only, never re-asked unless user opens Settings > Progress)
 2. What hits you most? (racing heart / shut down-numb / loud world / flashback-ish / nightmares)
 3. What helps, even a little? (hold / breathe / own voice / quiet+dark / reach someone)
 4. Sensory prefs (sound on/off, vibration strength from `HapticCapabilities`, work-safe default)
