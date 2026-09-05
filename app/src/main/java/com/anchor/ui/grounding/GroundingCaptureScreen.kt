@@ -1,5 +1,6 @@
 package com.anchor.ui.grounding
 
+import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,14 +21,15 @@ import com.anchor.core.audio.AudioDeliveryEngine
 import com.anchor.core.audio.DebugAudioEngine
 import com.anchor.domain.grounding.GroundingScript
 import com.anchor.domain.grounding.GroundingScriptBuilder
+import kotlinx.coroutines.delay
 
 /**
  * Rapid sensory grounding screen, reachable from the widget tap or volume-button long-press.
  * Displays a calm, instant 5-sense sensory grounding script to orient someone in acute distress.
  *
- * Supports Dual-Mode Audio Delivery:
- * - If earbuds are attached: speaks soft female whisper audio ("You are in a safe place.") into the earbud.
- * - If no earbuds are attached: mutes all sound for 100% silent haptic-only mode.
+ * Emergency Mode Audio Delivery:
+ * - When earphones are attached: speaks soft female whisper ("You are in a safe place.") within 1-2 seconds.
+ * - When no earphones are attached: mutes 100% of audio output for silent haptic-only mode.
  */
 @Composable
 fun GroundingCaptureScreen(
@@ -37,11 +39,13 @@ fun GroundingCaptureScreen(
     val script = remember { GroundingScriptBuilder.build(emptyList()) }
     val isWhisper = audioEngine.isWhisperModeActive()
 
-    LaunchedEffect(script) {
-        if (isWhisper) {
-            audioEngine.speakWhisper("You are in a safe place.")
+    LaunchedEffect(Unit) {
+        if (audioEngine.isWhisperModeActive()) {
+            audioEngine.speakWhisper("You are in a safe place.", TextToSpeech.QUEUE_FLUSH)
+            delay(2200L)
             script.sentences.forEach { sentence ->
-                audioEngine.speakWhisper(sentence)
+                audioEngine.speakWhisper(sentence, TextToSpeech.QUEUE_ADD)
+                delay(3000L)
             }
         }
     }

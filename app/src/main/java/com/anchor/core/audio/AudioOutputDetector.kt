@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Build
+import android.util.Log
 
 /**
  * Detects whether private listening devices (Bluetooth earbuds, A2DP, SCO,
@@ -18,29 +19,41 @@ interface AudioOutputDetector {
  */
 class SystemAudioOutputDetector(private val context: Context) : AudioOutputDetector {
 
+    private companion object {
+        const val TAG = "AudioOutputDetector"
+    }
+
     override fun isPrivateHeadsetConnected(): Boolean {
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
             ?: return false
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-            for (device in devices) {
-                when (device.type) {
-                    AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
-                    AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
-                    AudioDeviceInfo.TYPE_WIRED_HEADSET,
-                    AudioDeviceInfo.TYPE_WIRED_HEADPHONES -> return true
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    device.type == AudioDeviceInfo.TYPE_BLE_HEADSET
-                ) {
-                    return true
+        try {
+            @Suppress("DEPRECATION")
+            if (audioManager.isBluetoothA2dpOn || audioManager.isWiredHeadsetOn || audioManager.isBluetoothScoOn) {
+                return true
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+                for (device in devices) {
+                    when (device.type) {
+                        AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+                        AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+                        AudioDeviceInfo.TYPE_WIRED_HEADSET,
+                        AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+                        AudioDeviceInfo.TYPE_USB_HEADSET,
+                        AudioDeviceInfo.TYPE_USB_DEVICE,
+                        AudioDeviceInfo.TYPE_BLE_HEADSET,
+                        AudioDeviceInfo.TYPE_BLE_SPEAKER,
+                        AudioDeviceInfo.TYPE_HEARING_AID -> return true
+                    }
                 }
             }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error querying audio output devices: ${e.message}")
         }
 
-        @Suppress("DEPRECATION")
-        return audioManager.isBluetoothA2dpOn || audioManager.isWiredHeadsetOn
+        return false
     }
 }
 

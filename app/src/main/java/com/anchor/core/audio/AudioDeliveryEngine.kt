@@ -46,10 +46,10 @@ class WhisperAudioEngine(
 
     private var tts: TextToSpeech? = TextToSpeech(context.applicationContext, this)
     private var isTtsReady = false
-    private var pendingSpeechText: String? = null
-    private var pendingQueueMode: Int = TextToSpeech.QUEUE_FLUSH
+    private val pendingSpeechQueue = mutableListOf<Pair<String, Int>>()
 
     override fun onInit(status: Int) {
+        Log.i(TAG, "TTS onInit status=$status")
         if (status == TextToSpeech.SUCCESS) {
             try {
                 tts?.setLanguage(Locale.US)
@@ -66,13 +66,16 @@ class WhisperAudioEngine(
                 tts?.setPitch(1.18f)
                 tts?.setSpeechRate(0.85f)
                 isTtsReady = true
-                Log.i(TAG, "Whisper TTS initialized instantly with soft female voice")
+                Log.i(TAG, "Whisper TTS ready! Flushing ${pendingSpeechQueue.size} pending speech items")
 
-                // Immediately speak any phrase requested while TTS was starting
-                val textToSpeak = pendingSpeechText
-                if (textToSpeak != null && isWhisperModeActive()) {
-                    speakInternal(textToSpeak, pendingQueueMode)
-                    pendingSpeechText = null
+                // Immediately speak any phrase requested while TTS was initializing
+                synchronized(pendingSpeechQueue) {
+                    for ((text, mode) in pendingSpeechQueue) {
+                        if (isWhisperModeActive()) {
+                            speakInternal(text, mode)
+                        }
+                    }
+                    pendingSpeechQueue.clear()
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "Error configuring TTS: ${e.message}")
@@ -87,8 +90,11 @@ class WhisperAudioEngine(
     }
 
     override fun speakWhisper(text: String, queueMode: Int) {
+        val active = isWhisperModeActive()
+        Log.i(TAG, "speakWhisper requested: '$text' (whisperActive=$active, ttsReady=$isTtsReady)")
+
         // Essential Safety & Privacy rule: Mute 100% if no private earbuds are attached!
-        if (!isWhisperModeActive()) {
+        if (!active) {
             Log.d(TAG, "No earbuds connected — suppressing speaker audio (Silent Haptic Mode)")
             stop()
             return
@@ -96,8 +102,9 @@ class WhisperAudioEngine(
 
         if (!isTtsReady || tts == null) {
             Log.d(TAG, "TTS initializing; queuing instant speech: $text")
-            pendingSpeechText = text
-            pendingQueueMode = queueMode
+            synchronized(pendingSpeechQueue) {
+                pendingSpeechQueue.add(text to queueMode)
+            }
             return
         }
 
@@ -119,7 +126,9 @@ class WhisperAudioEngine(
 
     override fun stop() {
         try {
-            pendingSpeechText = null
+            synchronized(pendingSpeechQueue) {
+                pendingSpeechQueue.clear()
+            }
             if (isTtsReady) {
                 tts?.stop()
             }
@@ -169,5 +178,5 @@ class DebugAudioEngine(
  * Factory function to instantiate the system audio delivery engine.
  */
 fun createAudioEngine(context: Context): AudioDeliveryEngine {
-    return WhisperAudioEngine(context)
+    return WhisperAudioEngine(context.applicationContext)
 }
