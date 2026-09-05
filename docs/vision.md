@@ -169,6 +169,9 @@ online Places billing or GBs of offline data, both kill offline-first.
 Ship region-mapped static directory instead: bundled ~25KB state table,
 optional one-shot COARSE fix (never stored, never sent), manual 36-state
 picker fallback. Spec: `docs/near-you-research.md`.
+Pincode beats GPS: user types 6-digit PIN → first-2-digit state table
+(~28 rows, <1KB), zero permissions, fully offline. Institution map
+(apex/DMHP/NGO/private, 20 seed entries): `docs/ptsd-care-india-map.md`.
 
 ## Reading list (all agents read these, in order)
 - `docs/vision.md` (this file) — product + locks
@@ -177,6 +180,7 @@ picker fallback. Spec: `docs/near-you-research.md`.
 - `docs/teardown.md`, `docs/complaints.md`, `docs/synthesis.md` — why PTSD Coach loses
 - `docs/onboarding-research.md`, `docs/india-resources.md` — onboarding flow spec + India support directory
 - `docs/near-you-research.md` — near-you verdict (region-mapped static, no live POIs)
+- `docs/ptsd-care-india-map.md` — PIN routing table + 20 institutions + card taxonomy
 - `docs/content-sources.md` — exercise protocols, phrase bank, communities, Maps intent
 - `docs/demo-plan.md` — THE demo: locked feature list, fake cards, 90-sec script (share with SDK machine)
 - `docs/ptsd-coach-evidence.md` — trials, attrition, flaws (nice ≠ retained; our wedge)
