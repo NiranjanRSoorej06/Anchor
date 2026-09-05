@@ -165,4 +165,5 @@ picker fallback. Spec: `docs/near-you-research.md`.
 - `docs/near-you-research.md` — near-you verdict (region-mapped static, no live POIs)
 - `docs/content-sources.md` — exercise protocols, phrase bank, communities, Maps intent
 - `docs/demo-plan.md` — THE demo: locked feature list, fake cards, 90-sec script (share with SDK machine)
+- `docs/ptsd-coach-evidence.md` — trials, attrition, flaws (nice ≠ retained; our wedge)
 - `docs/tech-validation.md`, `docs/trigger-research.md`, `docs/oracle-review.md`, `docs/oracle-rereview.md` — feasibility + kill/defer rationale
