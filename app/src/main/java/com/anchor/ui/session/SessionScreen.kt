@@ -40,6 +40,7 @@ import com.anchor.domain.session.CheckInResponse
 import com.anchor.domain.session.SessionState
 import com.anchor.domain.session.SessionStateMachine
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 /** How long the EASING transition holds before moving on to CHECK_IN. Not
  * evidence-based — see plan.md's own note that this whole screen is a
@@ -66,11 +67,17 @@ fun SessionScreen(
 ) {
     val state by machine.state.collectAsState()
 
-    // Haptic follows exactly the states where "an activity is running" —
-    // stops immediately for everything else, including SAFETY_STOP.
+    // Haptic breathing loop synchronized with the visualizer:
+    // 4 seconds continuous ascending vibration (Inhale) + 6 seconds continuous descending vibration (Exhale).
+    // Allows non-visual tactile breath tracking without looking at the phone screen.
     LaunchedEffect(state) {
         if (state == SessionState.GROUNDING || state == SessionState.INTERVENTION) {
-            hapticEngine.play(HapticPatterns.DOUBLE_PULSE)
+            while (true) {
+                hapticEngine.play(HapticPatterns.BREATHING_IN)
+                delay(4000)
+                hapticEngine.play(HapticPatterns.BREATHING_OUT)
+                delay(6000)
+            }
         } else {
             hapticEngine.stop()
         }

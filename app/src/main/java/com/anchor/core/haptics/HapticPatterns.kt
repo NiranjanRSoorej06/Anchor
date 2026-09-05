@@ -61,26 +61,24 @@ object HapticPatterns {
     )
 
     /**
-     * A smooth ramp from silent to strong over ~4 seconds, in small steps.
-     * Intended to be felt alongside a slow inhale. One-shot: it does not
-     * repeat, so a higher layer plays BREATHING_IN then BREATHING_OUT in
-     * sequence to build a breathing cycle.
+     * A continuous smooth ramp from silent to full intensity over exactly 4 seconds (4000ms).
+     * 10 steps of 400ms. Allows non-visual tactile tracking of the 4s Inhale phase.
      */
     val BREATHING_IN = HapticPattern(
         id = "breathing_in",
-        timings = longArrayOf(0, 500, 500, 500, 500, 500, 500, 500, 500),
-        amplitudes = intArrayOf(0, 32, 64, 96, 128, 160, 192, 224, 255),
+        timings = longArrayOf(0, 400, 400, 400, 400, 400, 400, 400, 400, 400),
+        amplitudes = intArrayOf(0, 25, 50, 75, 100, 130, 160, 190, 220, 255),
         repeatIndex = -1
     )
 
     /**
-     * The mirror of BREATHING_IN: a smooth ramp from strong down to silent
-     * over ~4 seconds, for a slow exhale. Also one-shot.
+     * A continuous smooth ramp from full intensity down to silent over exactly 6 seconds (6000ms).
+     * 10 steps of 600ms. Allows non-visual tactile tracking of the 6s Exhale phase.
      */
     val BREATHING_OUT = HapticPattern(
         id = "breathing_out",
-        timings = longArrayOf(0, 500, 500, 500, 500, 500, 500, 500, 500),
-        amplitudes = intArrayOf(255, 224, 192, 160, 128, 96, 64, 32, 0),
+        timings = longArrayOf(0, 600, 600, 600, 600, 600, 600, 600, 600, 600),
+        amplitudes = intArrayOf(255, 220, 190, 160, 130, 100, 75, 50, 25, 0),
         repeatIndex = -1
     )
 
