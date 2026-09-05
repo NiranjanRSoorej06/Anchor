@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.anchor.domain.content.InterventionCatalog
+import com.anchor.domain.content.toSafetyCandidate
 import com.anchor.domain.personalization.PersonalizationScorer
 import com.anchor.domain.personalization.SessionOutcome
 import com.anchor.domain.routing.InterventionRouter
