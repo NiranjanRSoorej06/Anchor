@@ -47,10 +47,6 @@ fun HomeScreen(
 ) {
     val isWhisper = audioEngine.isWhisperModeActive()
 
-    LaunchedEffect(Unit) {
-        audioEngine.speakWhisper("You are in a safe place.")
-    }
-
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier

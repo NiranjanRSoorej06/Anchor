@@ -40,6 +40,7 @@ fun GroundingCaptureScreen(
     val isWhisper = audioEngine.isWhisperModeActive()
 
     LaunchedEffect(Unit) {
+        audioEngine.speakWhisper("You are in a safe place.", TextToSpeech.QUEUE_FLUSH)
         script.sentences.forEach { sentence ->
             audioEngine.speakWhisper(sentence, TextToSpeech.QUEUE_ADD)
             delay(3000L)

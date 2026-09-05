@@ -188,15 +188,12 @@ private fun ActivityStage(
     )
 
     LaunchedEffect(Unit) {
-        audioEngine.speakWhisper("You are in a safe place.")
         while (true) {
             phaseText = "Breathe In…"
             phaseSubtext = "Inhale slowly (4s)"
-            audioEngine.speakWhisper("Breathe In")
             delay(4000)
             phaseText = "Breathe Out…"
             phaseSubtext = "Exhale completely (6s)"
-            audioEngine.speakWhisper("Breathe Out")
             delay(6000)
         }
     }
