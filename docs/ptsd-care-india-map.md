@@ -339,3 +339,15 @@ The first 2 digits are NOT a perfect 1:1 state mapping — some states share pre
 | Govt mental hospitals: 47 total (3 central + 44 state) | PIB Budget 2026 | pib.gov.in/PRID=2226319 |
 | Treatment gap 70-92% | NMHS 2015-16 via PIB | pib.gov.in/PRID=2226319 |
 | Cost bands (govt ₹10-50, private ₹800-2500) | Existing research doc | Anchor/docs/india-resources.md |
+
+---
+
+## 7. Rejected alternative: GPS region lookup (folded from near-you-research.md, file deleted)
+
+Region-mapped static directory won over live GPS: Google Places needs
+internet + billing (no free tier since Mar 2025); Android Geocoder is
+backend-dependent; OSM extracts are GBs. The GPS fix itself works offline
+but costs a COARSE_LOCATION permission + ~1.5h permission flow for zero
+extra routing value over the PIN table. Kept as fallback only if pincode
+entry ever tests poorly. Sources: developer.android.com location +
+Geocoder docs, Places billing page.

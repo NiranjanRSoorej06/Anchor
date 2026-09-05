@@ -105,7 +105,7 @@ check-in ✅ built · SMS template ❌ (~2–3h: pre-written templates via
 ACTION_SENDTO, no auto-send) · privacy close ❌ (~1h: end card + data
 statement, no deletion theater).
 PLUS (differentiators, cheap): Find Support India directory + regional
-routing ❌ (~8h per docs/near-you-research.md; manual-picker-only lite
+routing ❌ (~8h per docs/ptsd-care-india-map.md §7; manual-picker-only lite
 ~2h fallback) · safety plan screen ❌ (model built; form UI ~3–4h) ·
 insight card ❌ (scorer built; ~1–2h).
 SEED, DON'T BUILD for demo: onboarding profile (spec S0–S12 exists;
@@ -174,7 +174,7 @@ Near-you verdict (locked): no live street-level clinic lookup — needs
 online Places billing or GBs of offline data, both kill offline-first.
 Ship region-mapped static directory instead: bundled ~25KB state table,
 optional one-shot COARSE fix (never stored, never sent), manual 36-state
-picker fallback. Spec: `docs/near-you-research.md`.
+picker fallback. Spec: `docs/ptsd-care-india-map.md` §7 (near-you verdict folded in).
 Pincode beats GPS: user types 6-digit PIN → first-2-digit state table
 (~28 rows, <1KB), zero permissions, fully offline. Institution map
 (apex/DMHP/NGO/private, 20 seed entries): `docs/ptsd-care-india-map.md`.
@@ -183,9 +183,8 @@ Pincode beats GPS: user types 6-digit PIN → first-2-digit state table
 - `docs/vision.md` (this file) — product + locks
 - `CLAUDE.md` — project rules, docs convention, cross-device workflow
 - `plan.md`, `evidence.md`, `M0-M4-CODEBASE-REFERENCE.md` (repo root) — execution plan, clinical base, codebase truth
-- `docs/teardown.md`, `docs/complaints.md`, `docs/synthesis.md` — why PTSD Coach loses
+- `docs/teardown.md`, `docs/complaints.md` — why PTSD Coach loses (synthesis.md deleted as superseded; history in git)
 - `docs/onboarding-research.md`, `docs/india-resources.md` — onboarding flow spec + India support directory
-- `docs/near-you-research.md` — near-you verdict (region-mapped static, no live POIs)
 - `docs/ptsd-care-india-map.md` — PIN routing table + 20 institutions + card taxonomy
 - `docs/content-sources.md` — exercise protocols, phrase bank, communities, Maps intent
 - `docs/ptsdcoach-online-brief.md` — 17 tools, transcripts, TTS options, top-5 takeaways
