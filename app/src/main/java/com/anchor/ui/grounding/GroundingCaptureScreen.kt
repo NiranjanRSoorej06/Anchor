@@ -11,6 +11,7 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview as CameraPreview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -114,22 +115,29 @@ fun GroundingCaptureScreen(onDone: () -> Unit) {
     }
 
     Scaffold { innerPadding ->
-        Column(
+        androidx.compose.foundation.layout.Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Kept in composition but visually negligible: some camera
-            // stacks need an active, attached Preview surface to reliably
-            // deliver frames even when nothing is meant to be shown.
-            AndroidView(factory = { previewView }, modifier = Modifier.size(1.dp))
+            // Full size preview view so CameraX initializes HD stream resolution with hardware auto-focus
+            AndroidView(
+                factory = { previewView },
+                modifier = Modifier.fillMaxSize()
+            )
 
-            when (val state = captureState) {
-                is CaptureState.Loading -> LoadingStage()
-                is CaptureState.Result -> ScriptStage(script = state.script, onDone = onDone)
+            // Calm overlay card
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.88f))
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                when (val state = captureState) {
+                    is CaptureState.Loading -> LoadingStage()
+                    is CaptureState.Result -> ScriptStage(script = state.script, onDone = onDone)
+                }
             }
         }
     }

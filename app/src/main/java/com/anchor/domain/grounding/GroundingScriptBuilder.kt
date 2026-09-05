@@ -25,20 +25,28 @@ object GroundingScriptBuilder {
      * are excluded before building sentences. Only concrete physical objects survive.
      */
     private val IGNORED_LABELS = setOf(
-        // Persons
+        // Persons & body parts
         "person", "people", "human", "human face", "face", "man", "woman",
-        "boy", "girl", "child", "baby", "selfie", "portrait", "crowd",
+        "boy", "girl", "child", "baby", "selfie", "portrait", "crowd", "hair",
+        "hairstyle", "skin", "head", "hand", "finger", "arm", "leg", "foot",
+        // Abstract feelings, emotions & activities
+        "fun", "leisure", "play", "recreation", "enjoyment", "joy", "happiness",
+        "smile", "sitting", "standing", "walking", "running", "jumping", "adaptation",
+        "event", "gesture", "performance", "competition", "game", "sport", "fitness",
+        "exercise", "tourism", "vacation", "holiday", "travel", "action", "activity",
         // Generic abstractions & shapes
         "font", "pattern", "design", "product", "material", "line", "parallel",
         "rectangle", "circle", "square", "shape", "brand", "logo", "text",
         "graphics", "art", "illustration", "component", "multimedia", "symbol",
-        // Abstract room/environment/color terms
+        // Abstract room/environment/color/photography terms
         "room", "floor", "ceiling", "wall", "lighting", "space", "indoor",
         "outdoor", "sky", "black", "white", "blue", "red", "green", "yellow",
         "shadow", "darkness", "light", "surface", "wood", "metal", "plastic",
+        "photography", "photo", "image", "picture", "snapshot", "reflection",
+        "style", "fashion", "outfit", "apparel", "clothing",
         // Broad category catch-alls
         "technology", "electronic device", "display device", "accessory",
-        "furniture", "object", "thing", "equipment", "gadget", "device"
+        "furniture", "object", "thing", "equipment", "gadget", "device", "item", "stuff"
     )
 
     /** Used when no real, usable labels are available — never references the camera. */
