@@ -1,8 +1,11 @@
 package com.anchor.ui.session
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -23,8 +26,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.anchor.core.haptics.HapticEngine
@@ -142,34 +149,89 @@ fun SessionScreen(
 
 @Composable
 private fun ActivityStage(onContinue: () -> Unit, onCancel: (() -> Unit)?) {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    var phaseText by remember { mutableStateOf("Breathe In…") }
+    var phaseSubtext by remember { mutableStateOf("Inhale slowly through your nose (4s)") }
+
+    // Scientific Standard Resonant Paced Breathing:
+    // 4s Inhale + 6s Exhale = 10s total cycle (6 breaths/minute).
+    // Clinically proven to maximize HRV resonance & parasympathetic activation in panic/PTSD.
+    val infiniteTransition = rememberInfiniteTransition(label = "resonantBreathing")
     val scale by infiniteTransition.animateFloat(
-        initialValue = 0.9f,
-        targetValue = 1.1f,
+        initialValue = 0.75f,
+        targetValue = 1.25f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1400),
-            repeatMode = RepeatMode.Reverse
+            animation = keyframes {
+                durationMillis = 10000 // 10s per cycle = 6 breaths/min
+                0.75f at 0 with LinearOutSlowInEasing
+                1.25f at 4000 with FastOutSlowInEasing
+                0.75f at 10000
+            },
+            repeatMode = RepeatMode.Restart
         ),
-        label = "pulseScale"
+        label = "visualizerScale"
     )
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            phaseText = "Breathe In…"
+            phaseSubtext = "Inhale slowly (4s)"
+            delay(4000)
+            phaseText = "Breathe Out…"
+            phaseSubtext = "Exhale completely (6s)"
+            delay(6000)
+        }
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(32.dp)
+        verticalArrangement = Arrangement.spacedBy(28.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(180.dp * scale)
-                .background(MaterialTheme.colorScheme.primary, CircleShape)
+        Text(
+            text = phaseText,
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center
         )
 
-        Button(modifier = Modifier.fillMaxWidth(), onClick = onContinue) {
-            Text("Continue")
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(230.dp)
+        ) {
+            // Outer translucent pulse aura
+            Box(
+                modifier = Modifier
+                    .size(190.dp * scale)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+            )
+            // Inner solid anchor circle
+            Box(
+                modifier = Modifier
+                    .size(140.dp * scale)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+            )
         }
 
-        if (onCancel != null) {
-            OutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = onCancel) {
-                Text("Cancel")
+        Text(
+            text = phaseSubtext,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Button(modifier = Modifier.fillMaxWidth(), onClick = onContinue) {
+                Text("I feel steady")
+            }
+
+            if (onCancel != null) {
+                OutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = onCancel) {
+                    Text("Pause")
+                }
             }
         }
     }
