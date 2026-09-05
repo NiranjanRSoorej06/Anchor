@@ -48,8 +48,9 @@ therapist directories, peer communities (forums, listener services,
 Indian NGOs) — ordered crisis-first with clear online/offline labels.
 
 **Onboarding (spec'd, screen coming):** welcome → consent → one-time
-symptom check-in → situation picker → sensory preferences → safety phrase
-→ trusted contact → done; every step skippable, ~15 seconds bare path.
+symptom check-in (PCL-5 questionnaire, 20 items) → situation picker →
+sensory preferences → safety phrase → trusted contact → done; every step
+skippable, ~15 seconds bare path.
 
 **Safety (built engine, screens coming):** dissociation-awarerouting that
 excludes inward-focus exercises when dissociated; hard safety filter over
@@ -65,6 +66,16 @@ voluntary trigger-photo log (blurred thumbnails, never auto-reviewed).
 Warm Sand) with light and dark modes; personalization (theme, routines,
 phrases); progress graphs; Learn education module; multilingual UI;
 in-app community (planned); everything stored on-device only.
+
+## Every screen to design
+Home (hero button) · Session (grounding visual) · Check-in question ·
+Recovery ending · Safety-stop ending · Intervention retry view · Find
+Support (helplines, pincode finder, map shortcuts, directories,
+communities) · Tools library (exercises, phrases, sleep) · Onboarding
+flow (welcome, consent, PCL-5, situation, sensory, phrase, contact,
+done) · Safety plan form · Insight card · Episode journal · Recovery
+follow-up prompt · Privacy close · Settings/preferences · Preview cards
+(routines, voice, Learn, graphs, languages, community).
 
 ## Who it's for
 India-first, all trauma types, explicitly not just veterans: floods,
