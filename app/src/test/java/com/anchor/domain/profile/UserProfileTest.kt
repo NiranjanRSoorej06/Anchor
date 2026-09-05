@@ -150,9 +150,13 @@ class UserProfileTest {
 
     @Test
     fun `valid phone formats are accepted`() {
+        // emergencyNumber follows the same rules as trustedContactNumber
+        // (see UserProfile's field doc and the "phone too short" test below) —
+        // a bare "911" is 3 chars and would fail the shared 7-char minimum,
+        // so use a realistic emergency-line number that satisfies PHONE_REGEX.
         val profile = defaults.copy(
             trustedContactNumber = "+1 555 123 4567",
-            emergencyNumber = "911"
+            emergencyNumber = "9110000"
         )
         assertTrue(
             "standard formats should be valid",

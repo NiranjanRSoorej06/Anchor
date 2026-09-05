@@ -75,6 +75,18 @@ class SafetyFilterTest {
         hasTraumaImagery = false
     )
 
+    // allowedStates covers every non-DISSOCIATION state so SF2 can be tested
+    // in isolation from SF6 (wrong-state exclusion) below.
+    private val interoceptiveAnyNonDissociation = SafetyCandidate(
+        id = "E004-BROAD",
+        interoceptive = true,
+        allowedStates = CurrentState.values().filter { it != CurrentState.DISSOCIATION }.toSet(),
+        requiresAudio = false,
+        requiresVoice = false,
+        requiresHaptics = true,
+        hasTraumaImagery = false
+    )
+
     private val fullProfile = SafetyProfile()
     private val noAudio = fullProfile.copy(audioOk = false)
     private val noVoice = fullProfile.copy(voiceOk = false)
@@ -113,11 +125,15 @@ class SafetyFilterTest {
 
     @Test
     fun `SF2 - non-dissociation states allow interoceptive candidate`() {
+        // Uses a fixture allowed in every non-DISSOCIATION state so this
+        // exercises SF2 alone — breathingHaptic's own allowedStates (PANICKY,
+        // HYPER_ALERT only) would otherwise trip SF6 for the other states,
+        // which is a different rule than the one this test is named for.
         val nonDissociation = CurrentState.values().filter { it != CurrentState.DISSOCIATION }
         for (state in nonDissociation) {
             assertTrue(
                 "SF2 should allow interoceptive in state $state",
-                SafetyFilter.permits(breathingHaptic, state, fullProfile)
+                SafetyFilter.permits(interoceptiveAnyNonDissociation, state, fullProfile)
             )
         }
     }
@@ -187,12 +203,17 @@ class SafetyFilterTest {
 
     @Test
     fun `SF8 - veto applies regardless of rank or position`() {
-        val rankedCandidates = listOf(externalOrientation, breathingHaptic, voiceNarration)
-        val profile = fullProfile.copy(notForMe = setOf("E001"))
-        val result = SafetyFilter.fallback(rankedCandidates, CurrentState.DISSOCIATION, profile)
+        // State is PANICKY so every candidate here already clears SF6 (all
+        // three allow PANICKY) — isolating the thing under test to SF8's
+        // notForMe veto, rather than mixing in the wrong-state exclusion
+        // that DISSOCIATION would trigger against E004/E006 (neither of
+        // which allows DISSOCIATION).
+        val rankedCandidates = listOf(breathingHaptic, voiceNarration, audioGuidedRelaxation)
+        val profile = fullProfile.copy(notForMe = setOf("E004"))
+        val result = SafetyFilter.fallback(rankedCandidates, CurrentState.PANICKY, profile)
         assertEquals(
-            "SF8: first-ranked E001 vetoed → fallback should skip to next eligible",
-            "E004", result.id
+            "SF8: first-ranked E004 vetoed → fallback should skip to next eligible",
+            "E006", result.id
         )
     }
 

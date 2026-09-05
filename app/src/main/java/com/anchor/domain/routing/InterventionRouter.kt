@@ -18,11 +18,17 @@ import com.anchor.domain.safety.SafetyProfile
  *
  * ```
  * candidates
- *   .filter { it.id !in alreadyTried }              // plan.md:364
+ *   .filter { it.id !in alreadyTried }              // plan.md:364 -> notTried
  *   .filter { SafetyFilter.permits(it, state, profile) }  // plan.md:363
  *   .sortedWith(rankComparator)                      // plan.md:365 / §9
- *   .ifEmpty { listOf(SafetyFilter.fallback(candidates, state, profile)) }  // SF7
+ *   .ifEmpty { listOf(SafetyFilter.fallback(notTried, state, profile)) }  // SF7
  * ```
+ *
+ * The fallback search deliberately uses `notTried`, not the raw
+ * `candidates` list: an intervention excluded only because the user
+ * already tried it this episode must never resurface as its own
+ * fallback — that would silently re-offer the exact thing a `SAME`
+ * response just said didn't fully help.
  */
 object InterventionRouter {
 
@@ -65,9 +71,15 @@ object InterventionRouter {
         }
         val ranked = sortedWithRate + withoutRate
 
-        // Stage 4 — Fallback guarantees non-empty result (SF7)
+        // Stage 4 — Fallback guarantees non-empty result (SF7).
+        //           Searches `notTried`, not the raw `candidates` — a
+        //           candidate excluded only because it was already tried
+        //           must not resurrect itself as its own fallback. Re-
+        //           offering the identical intervention the user just
+        //           said didn't fully help (a SAME response) defeats the
+        //           purpose of trying "something else" (plan.md:364).
         return ranked.ifEmpty {
-            listOf(SafetyFilter.fallback(candidates, state, profile))
+            listOf(SafetyFilter.fallback(notTried, state, profile))
         }
     }
 }

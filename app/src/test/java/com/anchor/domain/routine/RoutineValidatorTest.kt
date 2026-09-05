@@ -67,8 +67,14 @@ class RoutineValidatorTest {
 
     @Test
     fun `total duration exactly MAX_TOTAL_SEC is valid`() {
+        // A single step can't reach MAX_TOTAL_SEC (180) on its own — Breathing
+        // and Pause are individually capped at 120s. Split across two steps
+        // that sum to exactly 180 without either exceeding its own cap.
         routine = routine.copy(
-            steps = listOf(RoutineStep.Breathing(durationSec = Routine.MAX_TOTAL_SEC)),
+            steps = listOf(
+                RoutineStep.Breathing(durationSec = 120),
+                RoutineStep.Pause(durationSec = 60),
+            ),
         )
         assertTrue(RoutineValidator.validate(routine) is ValidationResult.Valid)
     }
