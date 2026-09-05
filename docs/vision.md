@@ -73,9 +73,19 @@ close. All other scripts killed. UI build priority follows this order.
 - KILL for demo: Django/Channels backend, Deepgram+Groq+ElevenLabs chain, ambient upload, passive EMA, trauma-type diagnosis cards, Ed25519.
 - STRETCH only: on-device loudness → hardcoded whisper, brown-noise asset (labeled comfort), Purr/Marble, volume trigger.
 
+## India-first support (locked: directory spec, UI later)
+PTSD Coach ships US-only numbers; India gets nothing. Anchor bundles an
+India-ready Find Support directory (`docs/india-resources.md`): Tele MANAS
+**14416** default, 112 emergency, Vandrevala 9999666555 (incl. WhatsApp),
+NIMHANS, iCall, Sneha, Kashmir Lifeline, AASRA + therapist URL (badged
+offline-unavailable). Phone-first (all work offline by call), free-first
+ordering, language tags, regional priority. Numbers must be re-verified
+before release.
+
 ## Reading list (all agents read these, in order)
 - `docs/vision.md` (this file) — product + locks
 - `CLAUDE.md` — project rules, docs convention, cross-device workflow
 - `plan.md`, `evidence.md`, `M0-M4-CODEBASE-REFERENCE.md` (repo root) — execution plan, clinical base, codebase truth
 - `docs/teardown.md`, `docs/complaints.md`, `docs/synthesis.md` — why PTSD Coach loses
+- `docs/onboarding-research.md`, `docs/india-resources.md` — onboarding flow spec + India support directory
 - `docs/tech-validation.md`, `docs/trigger-research.md`, `docs/oracle-review.md`, `docs/oracle-rereview.md` — feasibility + kill/defer rationale
