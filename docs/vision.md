@@ -132,7 +132,7 @@ anything captured leaving the device.
 
 ## Killed / deferred
 - KILL for demo: Django/Channels backend, Deepgram+Groq+ElevenLabs chain, ambient upload, passive EMA, trauma-type diagnosis cards, Ed25519.
-- STRETCH order: volume clutch first (docs/clutch-research.md verdict — Nugon real but niche, Dictate claim debunked, needs pre-configured Pixel/Samsung, 5.5–9.5d; Tier1 spike, never demo-default) → on-device loudness whisper → brown noise (comfort-labeled) → Purr/Marble.
+- STRETCH order: volume clutch PROTOTYPE BUILT (widget + 600ms long-press, screen-on/locked-awake only, static 5-sense script, camera removed; Tier1, never demo-default — full verdict in docs/clutch-research.md) → on-device loudness whisper → brown noise (comfort-labeled) → Purr/Marble.
   **Update (2026-09-05): the volume-clutch prototype is now built**, not
   just researched — `trigger/AnchorAccessibilityService.kt` (ported from
   Nugon's verified long-press pattern, screen-on/locked-awake only, no

@@ -23,6 +23,7 @@ import com.anchor.devtools.FindSupportScreen
 import com.anchor.devtools.RoutingLabScreen
 import com.anchor.devtools.SessionStateTestScreen
 import com.anchor.devtools.ThemeSwitcher
+import com.anchor.devtools.ToolsLibraryScreen
 import com.anchor.domain.session.SessionStateMachine
 import com.anchor.ui.HomeScreen
 import com.anchor.ui.grounding.GroundingCaptureScreen
@@ -95,6 +96,7 @@ class MainActivity : ComponentActivity() {
                         // RoutingLabScreen()
                         // DevHapticTestScreen()
                         // FindSupportScreen()
+                        // ToolsLibraryScreen()
                     }
                 }
             }

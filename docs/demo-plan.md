@@ -32,7 +32,7 @@ Preview, non-functional).
 | F1 | Custom routines | "Your panic button, your sequence — reorder, retime, retune." (model built) |
 | F2 | Wife's voice | "Record the voice that calms you. Yours, theirs, anyone's." (guardrails spec'd) |
 | F3 | Exercise library | "Grounding, breathing, PMR, sleep — 20+ guided exercises, all offline." (protocols sourced) |
-| F4 | Volume clutch | "Triple-press in your pocket, even locked. Solved in open source." (spike spec'd, Tier1) |
+| F4 | Volume clutch | "Hold a volume button, or tap a home-screen tile — prototype working, screen-on only." (widget + 600ms long-press built; deep-sleep bypass NOT solved) |
 | F5 | Learn module | "Understand PTSD without the textbook. 5-minute reads." |
 | F6 | Progress graphs | "Watch what helps, over weeks. Your data never leaves." |
 | F7 | Multilingual | "Hindi, Tamil, Telugu, Bengali, Kannada. PTSD speaks every language." |
