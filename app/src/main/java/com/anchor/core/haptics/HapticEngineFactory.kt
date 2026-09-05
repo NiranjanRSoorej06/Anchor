@@ -16,14 +16,8 @@ import android.os.Build
  * needing to switch that by hand.
  */
 fun createHapticEngine(context: Context): HapticEngine {
-    val looksLikeEmulator = Build.FINGERPRINT.startsWith("generic") ||
-        Build.FINGERPRINT.startsWith("unknown") ||
-        Build.MODEL.contains("Emulator") ||
-        Build.MODEL.contains("Android SDK built for") ||
-        Build.MANUFACTURER.contains("Genymotion") ||
-        Build.HARDWARE.contains("goldfish") ||
-        Build.HARDWARE.contains("ranchu") ||
-        Build.PRODUCT.contains("sdk")
-
-    return if (looksLikeEmulator) DebugHapticEngine() else SystemHapticEngine(context)
+    // Always instantiate SystemHapticEngine to drive real system vibration.
+    // SystemHapticEngine contains internal safety checks to degrade gracefully
+    // if a device or emulator lacks vibration hardware.
+    return SystemHapticEngine(context)
 }
