@@ -114,7 +114,7 @@ All shared knowledge lives in `/docs` inside this repo so every agent
 - `docs/vision.md` is the single source of truth for product decisions.
   Code is truth for behavior; vision.md is truth for intent.
 - Research and decision records live alongside it: `complaints.md`,
-  `synthesis.md`, `teardown.md`, `tech-validation.md`,
+  `teardown.md`, `tech-validation.md`,
   `trigger-research.md`, `oracle-review.md`, `oracle-rereview.md`.
 - Root-level `plan.md`, `evidence.md`, `M0-M4-CODEBASE-REFERENCE.md`
   remain the planning/evidence/codebase ground truth; do not duplicate

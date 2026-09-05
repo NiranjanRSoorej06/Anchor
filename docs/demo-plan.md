@@ -19,7 +19,7 @@ Preview, non-functional).
 | R3 | Check-in Better/Same/Worse + retry loop + SAFETY_STOP | ✅ | — | Full FSM verified incl. WORSE path |
 | R4 | SMS template (pre-written, via ACTION_SENDTO, no auto-send) | 🔨 | ~2–3h | Trusted-contact number optional; template preview |
 | R5 | Privacy close (end card: on-device, no upload, not medical care) | 🔨 | ~1h | Static screen, zero logic |
-| R6 | Find Support directory: 8 India helplines + regional routing | 🔨 | ~8h (lite manual-picker ~2h fallback) | Spec docs/india-resources.md + near-you-research.md; phone-first, offline |
+| R6 | Find Support directory: 8 India helplines + regional routing | 🔨 | ~8h (lite manual-picker ~2h fallback) | Spec docs/india-resources.md + ptsd-care-india-map.md §7; phone-first, offline |
 | R7 | Maps button (`geo:0,0?q=`, 3 presets, online-badged) | 🔨 | ~30min | No permission needed |
 | R8 | Communities block (r/ptsd, r/CPTSD, 7 Cups, TheMindClan, Sangath) with caveats | 🔨 | ~1h | Links + warning labels, online-badged |
 | R9 | Safety plan screen (Stanley-Brown 6 sections, form UI) | 🔨 | ~3–4h | Model + validator built; display-only, no auto-actions |
