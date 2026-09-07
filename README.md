@@ -26,6 +26,10 @@ Most mental-health apps assume network access and lean on generic biometric or A
 - **Home-screen widget & accessibility trigger** — a Glance widget and an optional volume-button long-press trigger for fast access.
 - **Personalization & follow-up** — lightweight Better/Same/Worse feedback loop and an optional post-episode check-in, with no repeated clinical assessments.
 
+## Screenshots
+<table> <tr> <td><img src="https://github.com/user-attachments/assets/a250685b-75a8-40a0-9003-601dd074ca4e" width="180"></td> <td><img src="https://github.com/user-attachments/assets/e09f6e06-d389-4053-ab0f-ac9bd16357e7" width="180"></td> <td><img src="https://github.com/user-attachments/assets/54755aaa-3951-45e5-8dc6-2caa2a983fb1" width="180"></td> <td><img src="https://github.com/user-attachments/assets/c4127141-c8aa-434d-ba06-7a3c3fbeeb90" width="180"></td> </tr> </table>
+
+
 ## Architecture
 
 The codebase separates plain-Kotlin domain logic from Android/UI concerns so the core behavior can be unit tested without a device or emulator:
